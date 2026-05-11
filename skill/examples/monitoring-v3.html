@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>监控指标方案 V3 · 图解版</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --ink: #1a1a1a;
+    --ink-soft: #555;
+    --line: #2a2a2a;
+    --paper: #ffffff;
+    --accent-red: #c0392b;
+    --accent-amber: #d68910;
+    --accent-green: #229954;
+    --accent-blue: #2874a6;
+    --accent-purple: #7d3c98;
+    --shadow: 4px 4px 0 #1a1a1a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.6;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+  header {
+    text-align: center;
+    padding: 32px 0 48px;
+    border-bottom: 3px solid var(--line);
+    margin-bottom: 48px;
+  }
+  header h1 { font-size: 36px; margin: 0 0 12px; letter-spacing: 2px; }
+  header .subtitle { font-size: 16px; color: var(--ink-soft); }
+  .nav {
+    position: sticky; top: 0;
+    background: var(--bg); padding: 16px 0;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 40px; z-index: 100;
+  }
+  .nav ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  }
+  .nav a {
+    display: inline-block; padding: 6px 12px;
+    border: 2px solid var(--line); background: var(--paper);
+    color: var(--ink); text-decoration: none; font-size: 13px;
+    transition: all 0.15s;
+  }
+  .nav a:hover { background: var(--ink); color: var(--paper); }
+  section { margin: 80px 0; scroll-margin-top: 80px; }
+  section h2 {
+    font-size: 28px; margin: 0 0 8px; padding-bottom: 12px;
+    border-bottom: 3px solid var(--line);
+    display: flex; align-items: baseline; gap: 16px;
+  }
+  section h2 .num {
+    font-size: 56px; font-weight: 900;
+    -webkit-text-stroke: 2px var(--line);
+    color: transparent;
+  }
+  section .lead {
+    font-size: 15px; color: var(--ink-soft);
+    margin: 8px 0 32px; padding-left: 80px;
+  }
+  .figure {
+    background: var(--paper); border: 3px solid var(--line);
+    box-shadow: var(--shadow); padding: 32px; margin: 24px 0;
+  }
+  .figure svg { display: block; width: 100%; height: auto; }
+  .caption {
+    font-size: 14px; color: var(--ink-soft);
+    margin-top: 12px; padding: 12px 16px;
+    background: #f0eee8; border-left: 4px solid var(--line);
+  }
+  .caption strong { color: var(--ink); }
+  .reading {
+    background: #fff8e7; border: 2px solid var(--accent-amber);
+    padding: 16px 20px; margin: 16px 0; font-size: 14px;
+  }
+  .reading::before {
+    content: "📖 怎么看这张图";
+    display: block; font-weight: 700; margin-bottom: 8px;
+    color: var(--accent-amber);
+  }
+  footer {
+    margin-top: 96px; padding: 32px 0;
+    border-top: 3px solid var(--line);
+    text-align: center; color: var(--ink-soft); font-size: 13px;
+  }
+  .svg-text { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .svg-mono { font-family: "SF Mono", Monaco, Consolas, monospace; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>监控指标方案 V3 · 图解版</h1>
+  <div class="subtitle">gaming_ai_meta_skills · 通俗易懂的可视化总览</div>
+</header>
+
+<div class="container">
+
+<nav class="nav">
+  <ul>
+    <li><a href="#fig1">① 总体架构</a></li>
+    <li><a href="#fig2">② 归类流程</a></li>
+    <li><a href="#fig3">③ 急诊 9 警报</a></li>
+    <li><a href="#fig4">④ 心电图机制</a></li>
+    <li><a href="#fig5">⑤ 仪表盘 5 组</a></li>
+    <li><a href="#fig6">⑥ 实施阶段</a></li>
+    <li><a href="#fig7">⑦ 融入 6 模块</a></li>
+  </ul>
+</nav>
+
+<!-- ============================================================ -->
+<!-- 图 1：总体三层架构图 -->
+<!-- ============================================================ -->
+<section id="fig1">
+  <h2><span class="num">01</span>总体三层架构</h2>
+  <div class="lead">把监控想象成一家医院——三个不同强度的"诊疗层"，各管不同的事</div>
+
+  <div class="reading">
+    自上而下读：<strong>急诊（治急病）→ 心电图（追踪关键指标）→ 体检（看长期趋势）</strong>。中间的箭头表示数据流向——急诊触发依赖心电图，体检的数据底座也是心电图。
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#eee" stroke-width="1"/>
+        </pattern>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+          <path d="M0,0 L10,6 L0,12 z" fill="#1a1a1a"/>
+        </marker>
+      </defs>
+      <rect width="1000" height="720" fill="url(#grid)"/>
+
+      <g>
+        <rect x="60" y="40" width="880" height="180" fill="#fff" stroke="#c0392b" stroke-width="4"/>
+        <rect x="60" y="40" width="200" height="180" fill="#c0392b"/>
+        <text x="160" y="115" text-anchor="middle" fill="white" font-size="32" font-weight="900">🚨</text>
+        <text x="160" y="155" text-anchor="middle" fill="white" font-size="20" font-weight="700" class="svg-text">第一层</text>
+        <text x="160" y="185" text-anchor="middle" fill="white" font-size="16" class="svg-text">急诊警报</text>
+
+        <text x="290" y="80" font-size="18" font-weight="700" fill="#c0392b" class="svg-text">Hard Gate · 立即阻塞 pipeline</text>
+        <text x="290" y="110" font-size="14" fill="#1a1a1a" class="svg-text">触发反应：发现异常 → 立刻停下流水线 → 人介入处理</text>
+        <text x="290" y="135" font-size="14" fill="#1a1a1a" class="svg-text">判定方式：全部用规则 / schema / 字符串比对，<tspan font-weight="700">不让 AI 当裁判</tspan></text>
+        <text x="290" y="160" font-size="14" fill="#1a1a1a" class="svg-text">指标数量：9 个</text>
+        <text x="290" y="195" font-size="13" fill="#555" font-style="italic" class="svg-text">例：训练框架 ≠ 用户指定的 Madrona → 红灯亮，停止训练</text>
+      </g>
+
+      <g stroke="#1a1a1a" stroke-width="2" fill="none">
+        <path d="M 250 220 L 250 280" marker-end="url(#arrow)"/>
+        <text x="270" y="255" font-size="11" fill="#555" class="svg-text">触发依据</text>
+        <path d="M 750 280 L 750 220" marker-end="url(#arrow)"/>
+        <text x="770" y="255" font-size="11" fill="#555" class="svg-text">数据来源</text>
+      </g>
+
+      <g>
+        <rect x="60" y="280" width="880" height="180" fill="#fff" stroke="#7d3c98" stroke-width="4"/>
+        <rect x="60" y="280" width="200" height="180" fill="#7d3c98"/>
+        <text x="160" y="355" text-anchor="middle" fill="white" font-size="32" font-weight="900">💓</text>
+        <text x="160" y="395" text-anchor="middle" fill="white" font-size="20" font-weight="700" class="svg-text">第二层</text>
+        <text x="160" y="425" text-anchor="middle" fill="white" font-size="16" class="svg-text">硬约束心电图</text>
+
+        <text x="290" y="320" font-size="18" font-weight="700" fill="#7d3c98" class="svg-text">Constraint Lifecycle · 给每条硬约束戴心电图</text>
+        <text x="290" y="350" font-size="14" fill="#1a1a1a" class="svg-text">触发反应：仅记录每个事件点的状态变化，不阻塞</text>
+        <text x="290" y="375" font-size="14" fill="#1a1a1a" class="svg-text">核心价值：<tspan font-weight="700">急诊警报的数据底座 + 事后归因的核心证据</tspan></text>
+        <text x="290" y="400" font-size="14" fill="#1a1a1a" class="svg-text">指标数量：1 套事件日志 + 4 个衍生指标</text>
+        <text x="290" y="435" font-size="13" fill="#555" font-style="italic" class="svg-text">例：Madrona 这条约束 → S1✓ S2✓ S3✓ S4✓ S5✗ → 知道在 S5 死的</text>
+      </g>
+
+      <g stroke="#1a1a1a" stroke-width="2" fill="none">
+        <path d="M 500 460 L 500 520" marker-end="url(#arrow)"/>
+        <text x="520" y="495" font-size="11" fill="#555" class="svg-text">数据沉淀</text>
+      </g>
+
+      <g>
+        <rect x="60" y="520" width="880" height="180" fill="#fff" stroke="#229954" stroke-width="4"/>
+        <rect x="60" y="520" width="200" height="180" fill="#229954"/>
+        <text x="160" y="595" text-anchor="middle" fill="white" font-size="32" font-weight="900">📊</text>
+        <text x="160" y="635" text-anchor="middle" fill="white" font-size="20" font-weight="700" class="svg-text">第三层</text>
+        <text x="160" y="665" text-anchor="middle" fill="white" font-size="16" class="svg-text">体检仪表盘</text>
+
+        <text x="290" y="560" font-size="18" font-weight="700" fill="#229954" class="svg-text">Trend Dashboard · 每周看趋势，不阻塞</text>
+        <text x="290" y="590" font-size="14" fill="#1a1a1a" class="svg-text">触发反应：长期统计 → 异常趋势 → 启动调查（如 skill 回归测试）</text>
+        <text x="290" y="615" font-size="14" fill="#1a1a1a" class="svg-text">价值：发现慢性病 / review 是否形同虚设 / 成本效率趋势</text>
+        <text x="290" y="640" font-size="14" fill="#1a1a1a" class="svg-text">指标数量：5 组共 ~20 个指标</text>
+        <text x="290" y="675" font-size="13" fill="#555" font-style="italic" class="svg-text">例：本周 Stage 6 回滚率从 15% 涨到 40% → 启动 skill 回归测试</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="caption">
+    <strong>记忆要点：</strong>急诊 = 即时阻塞 + 规则判定；心电图 = 全程记录 + 不阻塞但是其他两层的数据底座；体检 = 长期趋势 + 不阻塞。原则贯穿三层："<strong>发现异常用规则，分析原因才用 AI</strong>"。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 图 2：归类流程（重做） -->
+<!-- ============================================================ -->
+<section id="fig2">
+  <h2><span class="num">02</span>候选指标的归类流程</h2>
+  <div class="lead">当我们想加入一个新指标时，沿主干向下问 3 个问题，每个分叉指向不同归宿</div>
+
+  <div class="reading">
+    <strong>中间粗线</strong>是主干，从顶部"候选指标"一路向下到底部"急诊警报"。<strong>每个判断节点</strong>都有一个分叉指向旁路出口（仪表盘 / 丢弃）。如果一路活到底，就是急诊警报。
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 1000 940" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow-main" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+          <path d="M0,0 L10,6 L0,12 z" fill="#1a1a1a"/>
+        </marker>
+        <marker id="arrow-side" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+          <path d="M0,0 L9,5 L0,10 z" fill="#888"/>
+        </marker>
+      </defs>
+
+      <!-- ====== Header banner ====== -->
+      <rect x="0" y="0" width="1000" height="60" fill="#1a1a1a"/>
+      <text x="500" y="38" text-anchor="middle" fill="white" font-size="18" font-weight="700" class="svg-text">给定一个候选指标，怎么决定它该进哪一层？</text>
+
+      <!-- ====== Start ====== -->
+      <g>
+        <rect x="380" y="100" width="240" height="56" rx="8" fill="#1a1a1a"/>
+        <text x="500" y="125" text-anchor="middle" fill="white" font-size="14" font-weight="700" class="svg-text">候选指标 X</text>
+        <text x="500" y="144" text-anchor="middle" fill="#aaa" font-size="11" class="svg-text">（待归类）</text>
+      </g>
+
+      <!-- ====== Main trunk arrow ====== -->
+      <line x1="500" y1="156" x2="500" y2="200" stroke="#1a1a1a" stroke-width="4" marker-end="url(#arrow-main)"/>
+
+      <!-- ====== Q1 ====== -->
+      <g>
+        <rect x="320" y="200" width="360" height="80" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="500" y="228" text-anchor="middle" font-size="16" font-weight="700" class="svg-text">Q1 · 出现异常时</text>
+        <text x="500" y="252" text-anchor="middle" font-size="16" font-weight="700" class="svg-text">是否有任何动作会被触发？</text>
+        <text x="500" y="271" text-anchor="middle" font-size="11" fill="#888" font-style="italic" class="svg-text">（如果没人会做任何事，这指标就是噪声）</text>
+      </g>
+
+      <!-- Q1 side arrow → 丢弃 -->
+      <line x1="680" y1="240" x2="800" y2="240" stroke="#888" stroke-width="2" marker-end="url(#arrow-side)"/>
+      <text x="740" y="232" text-anchor="middle" font-size="12" font-weight="700" fill="#888" class="svg-text">没动作</text>
+
+      <g>
+        <rect x="800" y="210" width="170" height="60" rx="8" fill="#888" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="885" y="234" text-anchor="middle" fill="white" font-size="14" font-weight="700" class="svg-text">⛔ 丢弃</text>
+        <text x="885" y="254" text-anchor="middle" fill="white" font-size="11" class="svg-text">（噪声指标）</text>
+      </g>
+
+      <!-- Q1 main → down -->
+      <line x1="500" y1="280" x2="500" y2="335" stroke="#1a1a1a" stroke-width="4" marker-end="url(#arrow-main)"/>
+      <text x="510" y="310" font-size="12" font-weight="700" class="svg-text">有动作</text>
+
+      <!-- ====== Q2 ====== -->
+      <g>
+        <rect x="320" y="335" width="360" height="80" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="500" y="363" text-anchor="middle" font-size="16" font-weight="700" class="svg-text">Q2 · 判定逻辑</text>
+        <text x="500" y="387" text-anchor="middle" font-size="16" font-weight="700" class="svg-text">能否用规则 / schema 实现？</text>
+        <text x="500" y="406" text-anchor="middle" font-size="11" fill="#888" font-style="italic" class="svg-text">（让 AI 评判 AI，会发生同源失效）</text>
+      </g>
+
+      <!-- Q2 side arrow → 子分支盒 -->
+      <line x1="680" y1="375" x2="785" y2="375" stroke="#888" stroke-width="2" marker-end="url(#arrow-side)"/>
+      <text x="740" y="367" text-anchor="middle" font-size="12" font-weight="700" fill="#888" class="svg-text">需 LLM</text>
+
+      <!-- Q2a sub box: heterogeneity check + 2 outcomes -->
+      <g>
+        <rect x="785" y="330" width="200" height="225" rx="10" fill="#fafaf7" stroke="#888" stroke-width="2" stroke-dasharray="6,3"/>
+        <text x="885" y="352" text-anchor="middle" font-size="11" font-weight="700" fill="#555" class="svg-text">子分支：judge 是否</text>
+        <text x="885" y="368" text-anchor="middle" font-size="11" font-weight="700" fill="#555" class="svg-text">与被监控 agent 同源？</text>
+
+        <!-- Q2a homogeneous -> discard -->
+        <rect x="800" y="385" width="170" height="60" rx="8" fill="#888" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="885" y="406" text-anchor="middle" fill="white" font-size="13" font-weight="700" class="svg-text">⛔ 丢弃</text>
+        <text x="885" y="425" text-anchor="middle" fill="white" font-size="10" class="svg-text">同源失效风险</text>
+        <text x="885" y="438" text-anchor="middle" fill="white" font-size="10" class="svg-text">（盲点重叠）</text>
+
+        <!-- 分隔 -->
+        <line x1="800" y1="465" x2="970" y2="465" stroke="#bbb" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="885" y="480" text-anchor="middle" font-size="10" fill="#555" class="svg-text">如果是异构 judge ↓</text>
+
+        <!-- Q2a heterogeneous -> dashboard (downgraded) -->
+        <rect x="800" y="490" width="170" height="60" rx="8" fill="#229954" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="885" y="511" text-anchor="middle" fill="white" font-size="13" font-weight="700" class="svg-text">📊 仪表盘</text>
+        <text x="885" y="530" text-anchor="middle" fill="white" font-size="10" class="svg-text">降级，不阻塞</text>
+        <text x="885" y="543" text-anchor="middle" fill="white" font-size="10" class="svg-text">（只看趋势）</text>
+      </g>
+
+      <!-- Q2 main → down -->
+      <line x1="500" y1="415" x2="500" y2="470" stroke="#1a1a1a" stroke-width="4" marker-end="url(#arrow-main)"/>
+      <text x="510" y="445" font-size="12" font-weight="700" class="svg-text">能用规则</text>
+
+      <!-- ====== Q3 ====== -->
+      <g>
+        <rect x="320" y="470" width="360" height="80" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="500" y="498" text-anchor="middle" font-size="16" font-weight="700" class="svg-text">Q3 · 异常是否会</text>
+        <text x="500" y="522" text-anchor="middle" font-size="16" font-weight="700" class="svg-text">"静默通过"现有的 review skill？</text>
+        <text x="500" y="541" text-anchor="middle" font-size="11" fill="#888" font-style="italic" class="svg-text">（review 兜得住的事，监控不必重复造轮子）</text>
+      </g>
+
+      <!-- Q3 side arrow → 仪表盘 -->
+      <line x1="320" y1="510" x2="200" y2="510" stroke="#888" stroke-width="2" marker-end="url(#arrow-side)"/>
+      <text x="260" y="502" text-anchor="middle" font-size="12" font-weight="700" fill="#888" class="svg-text">review 兜得住</text>
+
+      <g>
+        <rect x="30" y="480" width="170" height="60" rx="8" fill="#229954" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="115" y="504" text-anchor="middle" fill="white" font-size="14" font-weight="700" class="svg-text">📊 仪表盘</text>
+        <text x="115" y="524" text-anchor="middle" fill="white" font-size="11" class="svg-text">（趋势观察）</text>
+      </g>
+
+      <!-- Q3 main → down -->
+      <line x1="500" y1="550" x2="500" y2="615" stroke="#1a1a1a" stroke-width="4" marker-end="url(#arrow-main)"/>
+      <text x="510" y="585" font-size="12" font-weight="700" class="svg-text">会静默通过</text>
+
+      <!-- ====== Final: 急诊 ====== -->
+      <g>
+        <rect x="320" y="615" width="360" height="90" rx="10" fill="#c0392b" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="500" y="646" text-anchor="middle" fill="white" font-size="22" font-weight="700" class="svg-text">🚨 急诊警报</text>
+        <text x="500" y="672" text-anchor="middle" fill="white" font-size="13" class="svg-text">立即阻塞 pipeline · 人介入处理</text>
+        <text x="500" y="693" text-anchor="middle" fill="#fcc" font-size="11" font-style="italic" class="svg-text">主干终点 · 一路活到底的指标</text>
+      </g>
+
+      <!-- ====== Companion note: ECG ====== -->
+      <g>
+        <rect x="100" y="755" width="800" height="140" rx="10" fill="#fff" stroke="#7d3c98" stroke-width="3" stroke-dasharray="8,4"/>
+        <text x="500" y="785" text-anchor="middle" font-size="16" font-weight="700" fill="#7d3c98" class="svg-text">💓 心电图：是配套机制，不是归类结果</text>
+        <text x="500" y="815" text-anchor="middle" font-size="13" class="svg-text">
+          决策树负责"指标该不该做、做成哪一层"。
+        </text>
+        <text x="500" y="838" text-anchor="middle" font-size="13" class="svg-text">
+          所有与<tspan font-weight="700">硬约束生命轨迹</tspan>相关的急诊指标，自动配套 💓 心电图事件记录。
+        </text>
+        <text x="500" y="865" text-anchor="middle" font-size="13" class="svg-text">
+          换句话说：心电图是给某些急诊指标"再加一层数据底座"，不是另外一种归宿。
+        </text>
+        <text x="500" y="888" text-anchor="middle" font-size="11" fill="#888" font-style="italic" class="svg-text">详见图 ④</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="caption">
+    <strong>用法示例：</strong>"完成率" → Q1 有动作 → Q2 能用规则 → Q3 review 兜得住（review 不通过的项目本来就不会跑完）→ 进<strong>仪表盘</strong>。<br>
+    "硬约束跨阶段传递" → Q1 有动作 → Q2 能用规则 → Q3 会静默通过（review 看不到字段消失）→ 进<strong>急诊</strong>，并配套心电图记录每一笔传递事件。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 图 3：9 个急诊警报（徽章移到底部） -->
+<!-- ============================================================ -->
+<section id="fig3">
+  <h2><span class="num">03</span>第一层 · 急诊 9 大警报故事卡</h2>
+  <div class="lead">每个警报对应一个真实发生过或可能发生的失败故事，按"如果不监控会发生什么"来记忆</div>
+
+  <div class="reading">
+    9 个卡片按编号排列。<strong>卡片底部</strong>标注它直接覆盖哪个已知问题（P-01 ~ P-06）。
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 1000 1100" xmlns="http://www.w3.org/2000/svg">
+      <style>
+        .card { fill: #fff; stroke: #1a1a1a; stroke-width: 2; }
+        .card-title { font-size: 14px; font-weight: 700; fill: #1a1a1a; }
+        .card-section { font-size: 12px; fill: #555; }
+        .card-monitor { font-size: 12px; fill: #1a1a1a; }
+        .badge { stroke: #1a1a1a; stroke-width: 1.5; }
+        .badge-text { font-size: 10px; font-weight: 700; fill: white; }
+        .num-circle { fill: #c0392b; stroke: #1a1a1a; stroke-width: 2; }
+        .num-text { fill: white; font-size: 14px; font-weight: 900; }
+      </style>
+
+      <!-- Card 1 -->
+      <g transform="translate(20,20)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">1</text>
+        <text class="card-title" x="60" y="35">用户原话捕获率</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            用户说"用 Madrona 训练"。AI 没记。8 小时后用户问"为啥没用 Madrona"，一脸懵。
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            所有祈使句必须落到 <code>hard_constraints[]</code>、<code>soft_suggestions[]</code> 或 <code>unhandled[]</code>，不能丢
+          </div>
+        </foreignObject>
+        <rect class="badge" x="180" y="218" width="115" height="20" fill="#c0392b"/>
+        <text class="badge-text" x="237" y="232" text-anchor="middle">覆盖 P-01 / P-02</text>
+      </g>
+
+      <!-- Card 2 -->
+      <g transform="translate(345,20)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">2</text>
+        <text class="card-title" x="60" y="35">硬/软约束字段分离</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            "不允许 AlphaZero"（硬）和"试试多种特征"（软）塞进同一字段，硬约束被当软建议绕过
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            JSON Schema 强制两个独立数组；禁止 <code>human_rough_idea</code> 自由文本承载硬约束
+          </div>
+        </foreignObject>
+        <rect class="badge" x="180" y="218" width="115" height="20" fill="#c0392b"/>
+        <text class="badge-text" x="237" y="232" text-anchor="middle">覆盖 P-01 / P-02</text>
+      </g>
+
+      <!-- Card 3 -->
+      <g transform="translate(670,20)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">3</text>
+        <text class="card-title" x="60" y="35">硬约束必须用户确认</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            AI 把"不允许 AlphaZero"理解成"避免 AlphaZero"，误差就出来了。
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            Stage 1 结束前必须把硬约束回显给用户；每条带 <code>acknowledged_by_user: bool</code>
+          </div>
+        </foreignObject>
+        <rect class="badge" x="180" y="218" width="115" height="20" fill="#c0392b"/>
+        <text class="badge-text" x="237" y="232" text-anchor="middle">覆盖 P-01 / P-02</text>
+      </g>
+
+      <!-- Card 4 -->
+      <g transform="translate(20,285)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">4</text>
+        <text class="card-title" x="60" y="35">硬约束跨阶段传递</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            Stage 3 还记得 Madrona 是硬约束，到 Stage 6 启动训练时这个约束"找不到了"。
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            Stage N+1 的 <code>inherited_constraints</code> 必须 ⊇ Stage N 的硬约束（按 id 比对）
+          </div>
+        </foreignObject>
+        <rect class="badge" x="220" y="218" width="75" height="20" fill="#c0392b"/>
+        <text class="badge-text" x="257" y="232" text-anchor="middle">覆盖 P-01</text>
+      </g>
+
+      <!-- Card 5 -->
+      <g transform="translate(345,285)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">5</text>
+        <text class="card-title" x="60" y="35">训练框架硬约束匹配</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            用户要 Madrona，训练脚本启动时却是普通 PyTorch。Stage 6 前的最后一道闸。
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            训练启动前扫描硬约束中的框架/算法关键词，与训练配置严格比对
+          </div>
+        </foreignObject>
+        <rect class="badge" x="220" y="218" width="75" height="20" fill="#c0392b"/>
+        <text class="badge-text" x="257" y="232" text-anchor="middle">覆盖 P-01</text>
+      </g>
+
+      <!-- Card 6 -->
+      <g transform="translate(670,285)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">6</text>
+        <text class="card-title" x="60" y="35">stage-review 必被调用</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            AI 想跳过 review 偷个懒，直接进下一 stage。
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            每次 stage 切换前必须有 <code>Skill(name="stage-review")</code> 日志，无则阻塞
+          </div>
+        </foreignObject>
+        <rect class="badge" x="205" y="218" width="90" height="20" fill="#7d3c98"/>
+        <text class="badge-text" x="250" y="232" text-anchor="middle">兜底全部 P</text>
+      </g>
+
+      <!-- Card 7 -->
+      <g transform="translate(20,550)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">7</text>
+        <text class="card-title" x="60" y="35">异常评估触发专家审查</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            vs 三个 league 对手都 100% 胜率，AI 没怀疑，直接交付。
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            winrate ≥95%/≤5%、方差&lt;2%、单步变化&gt;30pp → 强制 expert-review
+          </div>
+        </foreignObject>
+        <rect class="badge" x="220" y="218" width="75" height="20" fill="#c0392b"/>
+        <text class="badge-text" x="257" y="232" text-anchor="middle">覆盖 P-05</text>
+      </g>
+
+      <!-- Card 8 -->
+      <g transform="translate(345,550)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">8</text>
+        <text class="card-title" x="60" y="35">方向切换触发决策审查</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            训练曲线平台期了，AI 选"加训练步数"，浪费 5 小时。
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            决策输出必含 <code>rationale</code>+<code>prerequisite_checks</code>；切换方向必触发 decision-review
+          </div>
+        </foreignObject>
+        <rect class="badge" x="220" y="218" width="75" height="20" fill="#c0392b"/>
+        <text class="badge-text" x="257" y="232" text-anchor="middle">覆盖 P-04</text>
+      </g>
+
+      <!-- Card 9 -->
+      <g transform="translate(670,550)">
+        <rect class="card" width="305" height="245"/>
+        <circle class="num-circle" cx="30" cy="30" r="18"/>
+        <text class="num-text" x="30" y="35" text-anchor="middle">9</text>
+        <text class="card-title" x="60" y="35">影子调用拦截 🌟</text>
+        <text class="card-section" x="15" y="75">📝 故事</text>
+        <foreignObject x="15" y="80" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+            AI 说"vs Random 胜率 92%"，但同会话日志里根本没调用过 evaluate.py，数字是脑补的
+          </div>
+        </foreignObject>
+        <text class="card-monitor" x="15" y="165">🔍 监控</text>
+        <foreignObject x="15" y="170" width="280" height="60">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+            对"我已经/结果是/胜率为"类陈述，反查会话日志是否有对应 tool_use
+          </div>
+        </foreignObject>
+        <rect class="badge" x="180" y="218" width="115" height="20" fill="#c0392b"/>
+        <text class="badge-text" x="237" y="232" text-anchor="middle">覆盖 P-05 孪生</text>
+      </g>
+
+      <!-- Coverage summary -->
+      <g transform="translate(20,820)">
+        <rect width="955" height="240" fill="#fff8e7" stroke="#d68910" stroke-width="2"/>
+        <text x="20" y="30" font-size="16" font-weight="700" fill="#d68910" class="svg-text">⚡ 9 个警报对已知问题的覆盖（反向验证）</text>
+
+        <text x="20" y="65" font-size="13" font-weight="700" class="svg-text">P-01 Madrona 静默丢弃</text>
+        <text x="200" y="65" font-size="12" class="svg-text">→ 警报 1, 3, 4, 5（四道防线，从源头到训练前）</text>
+
+        <text x="20" y="95" font-size="13" font-weight="700" class="svg-text">P-02 硬/软约束混存</text>
+        <text x="200" y="95" font-size="12" class="svg-text">→ 警报 1, 2, 3</text>
+
+        <text x="20" y="125" font-size="13" font-weight="700" class="svg-text">P-03 跨系统架构假设错</text>
+        <text x="200" y="125" font-size="12" fill="#888" class="svg-text">→ 阶段二覆盖（跨系统 encoding 哈希一致性）</text>
+
+        <text x="20" y="155" font-size="13" font-weight="700" class="svg-text">P-04 训练方向无前置检查</text>
+        <text x="200" y="155" font-size="12" class="svg-text">→ 警报 8</text>
+
+        <text x="20" y="185" font-size="13" font-weight="700" class="svg-text">P-05 异常胜率不质疑</text>
+        <text x="200" y="185" font-size="12" class="svg-text">→ 警报 7, 9</text>
+
+        <text x="20" y="215" font-size="13" font-weight="700" class="svg-text">P-06 WebUI 异步卡死</text>
+        <text x="200" y="215" font-size="12" fill="#888" class="svg-text">→ 阶段三覆盖（前端代码模板 linter 根治）</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="caption">
+    <strong>关键洞察：</strong>9 个警报全部用规则/schema/grep 实现，<strong>零 LLM 评判</strong>。第一阶段直接捕获 P-01、P-02、P-04、P-05 四个最严重问题；P-03 和 P-06 留给后续阶段。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 图 4：心电图机制 -->
+<!-- ============================================================ -->
+<section id="fig4">
+  <h2><span class="num">04</span>第二层 · 硬约束心电图详解</h2>
+  <div class="lead">这是整个监控体系最有诊断价值的一层。用 Madrona 案例追踪它的完整工作机制</div>
+
+  <div class="reading">
+    <strong>左半边</strong>：心电图的事件类型（一条约束在生命中会遇到的"体检点"）。<strong>右半边</strong>：用 Madrona 真实案例做追踪示范，可以看到约束在哪一步"心跳骤停"。<strong>底部</strong>：从这张心电图能产出的 4 个衍生指标。
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 1000 1200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="1000" height="50" fill="#7d3c98"/>
+      <text x="500" y="32" text-anchor="middle" fill="white" font-size="20" font-weight="700" class="svg-text">💓 心电图：每条硬约束的完整生命轨迹</text>
+
+      <!-- LEFT -->
+      <g transform="translate(20, 80)">
+        <text x="0" y="20" font-size="16" font-weight="700" class="svg-text">事件类型（5 种）</text>
+
+        <g transform="translate(0, 40)">
+          <rect width="440" height="65" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="8" height="65" fill="#7d3c98"/>
+          <text x="20" y="22" font-size="13" font-weight="700" class="svg-text">① acknowledged（诞生）</text>
+          <text x="20" y="42" font-size="11" fill="#555" class="svg-text">何时：Stage 1 用户确认硬约束</text>
+          <text x="20" y="58" font-size="11" fill="#555" class="svg-text">检查：约束被打勾、source_quote 记录</text>
+        </g>
+
+        <g transform="translate(0, 115)">
+          <rect width="440" height="65" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="8" height="65" fill="#7d3c98"/>
+          <text x="20" y="22" font-size="13" font-weight="700" class="svg-text">② prompt_context_check（每 stage 入口）</text>
+          <text x="20" y="42" font-size="11" fill="#555" class="svg-text">何时：每个 stage 开始</text>
+          <text x="20" y="58" font-size="11" fill="#555" class="svg-text">检查：约束的 id/text 是否在主 agent 的 prompt 上下文里</text>
+        </g>
+
+        <g transform="translate(0, 190)">
+          <rect width="440" height="65" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="8" height="65" fill="#7d3c98"/>
+          <text x="20" y="22" font-size="13" font-weight="700" class="svg-text">③ dispatch_carry_check（dispatch 子任务时）</text>
+          <text x="20" y="42" font-size="11" fill="#555" class="svg-text">何时：主 agent 调用 Task() dispatch subagent</text>
+          <text x="20" y="58" font-size="11" fill="#555" class="svg-text">检查：约束是否传到 subagent 的 prompt 里</text>
+        </g>
+
+        <g transform="translate(0, 265)">
+          <rect width="440" height="65" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="8" height="65" fill="#7d3c98"/>
+          <text x="20" y="22" font-size="13" font-weight="700" class="svg-text">④ output_compliance_check（输出合规检查）</text>
+          <text x="20" y="42" font-size="11" fill="#555" class="svg-text">何时：subagent 返回后 / stage 输出后</text>
+          <text x="20" y="58" font-size="11" fill="#555" class="svg-text">检查：实际产物是否尊重了这条约束</text>
+        </g>
+
+        <g transform="translate(0, 340)">
+          <rect width="440" height="65" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="8" height="65" fill="#7d3c98"/>
+          <text x="20" y="22" font-size="13" font-weight="700" class="svg-text">⑤ propagation_check（出口传递检查）</text>
+          <text x="20" y="42" font-size="11" fill="#555" class="svg-text">何时：stage 结束、准备进下一 stage</text>
+          <text x="20" y="58" font-size="11" fill="#555" class="svg-text">检查：约束被写入 inherited_constraints[] 传给下游</text>
+        </g>
+
+        <g transform="translate(0, 420)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">日志样例 (constraint_lifecycle.jsonl)</text>
+          <rect x="0" y="10" width="440" height="180" fill="#1a1a1a"/>
+          <text x="15" y="32" font-size="10" fill="#fff" class="svg-mono">{</text>
+          <text x="15" y="48" font-size="10" fill="#a6e22e" class="svg-mono">  "req_id": "R-Madrona",</text>
+          <text x="15" y="64" font-size="10" fill="#a6e22e" class="svg-mono">  "stage": 5,</text>
+          <text x="15" y="80" font-size="10" fill="#a6e22e" class="svg-mono">  "auto_improve_round": null,</text>
+          <text x="15" y="96" font-size="10" fill="#a6e22e" class="svg-mono">  "depth": "main_agent",</text>
+          <text x="15" y="112" font-size="10" fill="#a6e22e" class="svg-mono">  "event": "prompt_context_check",</text>
+          <text x="15" y="128" font-size="10" fill="#f92672" class="svg-mono">  "carried": false,    ← 警报！</text>
+          <text x="15" y="144" font-size="10" fill="#a6e22e" class="svg-mono">  "previous_state": "carried",</text>
+          <text x="15" y="160" font-size="10" fill="#a6e22e" class="svg-mono">  "justification": null,</text>
+          <text x="15" y="176" font-size="10" fill="#a6e22e" class="svg-mono">  "timestamp": "..."</text>
+          <text x="15" y="188" font-size="10" fill="#fff" class="svg-mono">}</text>
+        </g>
+      </g>
+
+      <!-- RIGHT -->
+      <g transform="translate(490, 80)">
+        <text x="0" y="20" font-size="16" font-weight="700" class="svg-text">案例追踪：Madrona 这条约束的命运</text>
+
+        <g transform="translate(0, 40)">
+          <rect width="490" height="540" fill="#fafaf7" stroke="#7d3c98" stroke-width="2"/>
+
+          <g transform="translate(20, 30)">
+            <circle cx="0" cy="0" r="14" fill="#229954" stroke="#1a1a1a" stroke-width="2"/>
+            <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="700">S1</text>
+            <text x="22" y="-2" font-size="12" font-weight="700" class="svg-text">acknowledged ✓</text>
+            <text x="22" y="14" font-size="10" fill="#555" class="svg-text">用户确认：用 Madrona GPU 训练</text>
+          </g>
+          <line x1="20" y1="50" x2="20" y2="90" stroke="#229954" stroke-width="3"/>
+
+          <g transform="translate(20, 100)">
+            <circle cx="0" cy="0" r="14" fill="#229954" stroke="#1a1a1a" stroke-width="2"/>
+            <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="700">S2</text>
+            <text x="22" y="-2" font-size="12" font-weight="700" class="svg-text">prompt_check ✓ + dispatch ✓</text>
+            <text x="22" y="14" font-size="10" fill="#555" class="svg-text">约束传入 Replay IR subagent</text>
+          </g>
+          <line x1="20" y1="120" x2="20" y2="160" stroke="#229954" stroke-width="3"/>
+
+          <g transform="translate(20, 170)">
+            <circle cx="0" cy="0" r="14" fill="#229954" stroke="#1a1a1a" stroke-width="2"/>
+            <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="700">S3</text>
+            <text x="22" y="-2" font-size="12" font-weight="700" class="svg-text">prompt_check ✓ + dispatch ✓</text>
+            <text x="22" y="14" font-size="10" fill="#555" class="svg-text">env-development，约束仍在</text>
+          </g>
+          <line x1="20" y1="190" x2="20" y2="230" stroke="#229954" stroke-width="3"/>
+
+          <g transform="translate(20, 240)">
+            <circle cx="0" cy="0" r="14" fill="#229954" stroke="#1a1a1a" stroke-width="2"/>
+            <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="700">S4</text>
+            <text x="22" y="-2" font-size="12" font-weight="700" class="svg-text">prompt_check ✓</text>
+            <text x="22" y="14" font-size="10" fill="#555" class="svg-text">环境验证通过</text>
+          </g>
+          <line x1="20" y1="260" x2="20" y2="300" stroke="#229954" stroke-width="3"/>
+
+          <g transform="translate(20, 310)">
+            <circle cx="0" cy="0" r="14" fill="#229954" stroke="#1a1a1a" stroke-width="2"/>
+            <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="700">S5</text>
+            <text x="22" y="-2" font-size="12" font-weight="700" class="svg-text">prompt_check ✓ + dispatch ✗ 🚨</text>
+            <text x="22" y="14" font-size="10" fill="#c0392b" font-weight="700" class="svg-text">死亡点！dispatch 时未携带约束</text>
+            <text x="22" y="28" font-size="10" fill="#c0392b" class="svg-text">main_agent → ai-strategy subagent 漏传</text>
+          </g>
+          <line x1="20" y1="345" x2="20" y2="380" stroke="#c0392b" stroke-width="3" stroke-dasharray="4,4"/>
+
+          <g transform="translate(20, 390)">
+            <circle cx="0" cy="0" r="14" fill="#c0392b" stroke="#1a1a1a" stroke-width="2"/>
+            <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="700">S6</text>
+            <text x="22" y="-2" font-size="12" font-weight="700" class="svg-text">prompt_check ✗ ❌</text>
+            <text x="22" y="14" font-size="10" fill="#c0392b" class="svg-text">约束已丢失，训练框架选成 PyTorch</text>
+          </g>
+          <line x1="20" y1="410" x2="20" y2="450" stroke="#c0392b" stroke-width="3" stroke-dasharray="4,4"/>
+
+          <g transform="translate(20, 460)">
+            <circle cx="0" cy="0" r="14" fill="#c0392b" stroke="#1a1a1a" stroke-width="2"/>
+            <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="700">S7-8</text>
+            <text x="22" y="-2" font-size="12" font-weight="700" class="svg-text">output_compliance ✗ ❌</text>
+            <text x="22" y="14" font-size="10" fill="#c0392b" class="svg-text">模型用 PyTorch 训出来，违反硬约束</text>
+            <text x="22" y="28" font-size="10" fill="#c0392b" class="svg-text">→ 急诊警报 5（训练框架匹配）触发</text>
+          </g>
+        </g>
+
+        <g transform="translate(0, 600)">
+          <rect width="490" height="155" fill="#fff8e7" stroke="#d68910" stroke-width="2"/>
+          <text x="15" y="25" font-size="14" font-weight="700" fill="#d68910" class="svg-text">🔍 心电图揭示的洞察</text>
+          <text x="15" y="50" font-size="12" class="svg-text">如果没有心电图：只能修 Stage 6 的训练框架检查</text>
+          <text x="15" y="70" font-size="12" class="svg-text">有了心电图：发现死亡点在 <tspan font-weight="700">Stage 5 dispatch</tspan></text>
+          <text x="15" y="90" font-size="12" class="svg-text">→ 真正要修的是 <tspan font-weight="700">Task() 工具的 prompt 模板</tspan>，</text>
+          <text x="15" y="110" font-size="12" class="svg-text">　 强制把硬约束注入到 dispatch 的 prompt 顶部</text>
+          <text x="15" y="135" font-size="12" font-weight="700" fill="#c0392b" class="svg-text">这是"治标 vs 治本"的关键区别</text>
+        </g>
+      </g>
+
+      <!-- BOTTOM: 4 derived metrics -->
+      <g transform="translate(20, 800)">
+        <text x="0" y="20" font-size="16" font-weight="700" class="svg-text">从心电图衍生的 4 个指标</text>
+
+        <g transform="translate(0, 40)">
+          <rect width="232" height="170" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="232" height="32" fill="#7d3c98"/>
+          <text x="116" y="22" text-anchor="middle" fill="white" font-size="12" font-weight="700" class="svg-text">① 断点率</text>
+          <foreignObject x="10" y="42" width="212" height="120">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.45;font-family:sans-serif;">
+              <b>说人话：</b>约束最常在哪一步消失？<br><br>
+              <b>产出：</b>死亡点直方图<br>
+              <b>价值：</b>找出 dispatch 模板等系统性漏洞，<u>治本而非治标</u>
+            </div>
+          </foreignObject>
+        </g>
+
+        <g transform="translate(247, 40)">
+          <rect width="232" height="170" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="232" height="32" fill="#7d3c98"/>
+          <text x="116" y="22" text-anchor="middle" fill="white" font-size="12" font-weight="700" class="svg-text">② 生命周期完整性</text>
+          <foreignObject x="10" y="42" width="212" height="120">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.45;font-family:sans-serif;">
+              <b>说人话：</b>从生到死全程被尊重的约束占多少？<br><br>
+              <b>应对：</b>单项目&lt;100% 不能交付<br>
+              <b>价值：</b>delivery 前最后一道关
+            </div>
+          </foreignObject>
+        </g>
+
+        <g transform="translate(494, 40)">
+          <rect width="232" height="170" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="232" height="32" fill="#7d3c98"/>
+          <text x="116" y="22" text-anchor="middle" fill="white" font-size="12" font-weight="700" class="svg-text">③ 违例步骤分布</text>
+          <foreignObject x="10" y="42" width="212" height="120">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.45;font-family:sans-serif;">
+              <b>说人话：</b>违例时最常发生在 stage / depth / subagent 的哪个维度？<br><br>
+              <b>价值：</b>指导 skill 改写的优先级
+            </div>
+          </foreignObject>
+        </g>
+
+        <g transform="translate(741, 40)">
+          <rect width="232" height="170" fill="#fff" stroke="#7d3c98" stroke-width="2"/>
+          <rect width="232" height="32" fill="#7d3c98"/>
+          <text x="116" y="22" text-anchor="middle" fill="white" font-size="12" font-weight="700" class="svg-text">④ auto-improve 轮内保持率</text>
+          <foreignObject x="10" y="42" width="212" height="120">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.45;font-family:sans-serif;">
+              <b>说人话：</b>长循环里约束有没有在第 N 轮悄悄丢？<br><br>
+              <b>价值：</b>auto-improve 是约束高危区，需独立追踪
+            </div>
+          </foreignObject>
+        </g>
+      </g>
+
+      <g transform="translate(20, 1040)">
+        <rect width="960" height="140" fill="#f0eee8" stroke="#1a1a1a" stroke-width="2"/>
+        <text x="15" y="30" font-size="14" font-weight="700" class="svg-text">💡 关键理解</text>
+        <foreignObject x="15" y="40" width="930" height="100">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;line-height:1.55;font-family:sans-serif;">
+            <b>心电图本身不阻塞 pipeline</b>，它只是诚实记录每一笔事件。<b>真正阻塞 pipeline 的是第一层急诊警报</b>——但急诊只能告诉你"出事了"，心电图告诉你"在哪出的事"。<br>
+            没有心电图，所有 P-01 类问题修了也不知道修没修对——你只能依赖"用户没再投诉"作为证据；有了心电图，你能在每次修改后看到死亡点是否真的消失了。
+          </div>
+        </foreignObject>
+      </g>
+    </svg>
+  </div>
+
+  <div class="caption">
+    <strong>类比记忆：</strong>急诊警报是"医生听到病人喊疼按下急救铃"；心电图是"24 小时 Holter 监护，事后能播放完整心律"。两者都重要——一个负责"立刻处置"，一个负责"长期诊断"。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 图 5：仪表盘 5 组（去掉所有成本标签） -->
+<!-- ============================================================ -->
+<section id="fig5">
+  <h2><span class="num">05</span>第三层 · 体检仪表盘 5 组分类</h2>
+  <div class="lead">~20 个 trend 指标分 5 组管理，每组解决一类长期问题</div>
+
+  <div class="reading">
+    每组用一种颜色，组名下方列出该组的所有指标。这一层<strong>都不阻塞 pipeline</strong>，只看趋势。
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 1000 920" xmlns="http://www.w3.org/2000/svg">
+      <!-- B1 -->
+      <g transform="translate(20,20)">
+        <rect width="465" height="265" fill="#fff" stroke="#2874a6" stroke-width="3"/>
+        <rect width="465" height="40" fill="#2874a6"/>
+        <text x="20" y="27" fill="white" font-size="16" font-weight="700" class="svg-text">B1 · 流程健康度</text>
+        <text x="450" y="27" text-anchor="end" fill="white" font-size="12" class="svg-text">4 个指标</text>
+
+        <g transform="translate(20, 60)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 完成率</text>
+          <text x="170" y="0" font-size="11" fill="#555" class="svg-text">跑到 Stage 8 的比例</text>
+        </g>
+        <g transform="translate(20, 95)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ Stage 回滚率</text>
+          <text x="170" y="0" font-size="11" fill="#555" class="svg-text">stage-review block 比例</text>
+        </g>
+        <g transform="translate(20, 130)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 阶段流转时长</text>
+          <text x="170" y="0" font-size="11" fill="#555" class="svg-text">每 stage 入/出时间差</text>
+        </g>
+        <g transform="translate(20, 165)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ Skill 调用深度</text>
+          <text x="170" y="0" font-size="11" fill="#555" class="svg-text">单会话最大嵌套层数</text>
+        </g>
+
+        <line x1="20" y1="200" x2="445" y2="200" stroke="#ccc" stroke-width="1"/>
+        <text x="20" y="225" font-size="11" font-style="italic" fill="#555" class="svg-text">💡 用途：发现 pipeline 整体效率变差</text>
+        <text x="20" y="245" font-size="11" font-style="italic" fill="#555" class="svg-text">📈 示例：上周 8/10 完成，本周 3/10 → 启动 skill 回归测试</text>
+      </g>
+
+      <!-- B2 -->
+      <g transform="translate(515,20)">
+        <rect width="465" height="265" fill="#fff" stroke="#7d3c98" stroke-width="3"/>
+        <rect width="465" height="40" fill="#7d3c98"/>
+        <text x="20" y="27" fill="white" font-size="16" font-weight="700" class="svg-text">B2 · 决策质量</text>
+        <text x="450" y="27" text-anchor="end" fill="white" font-size="12" class="svg-text">4 个指标</text>
+
+        <g transform="translate(20, 60)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ auto-improve 边际收益</text>
+          <text x="220" y="0" font-size="11" fill="#555" class="svg-text">winrate 增量/token</text>
+        </g>
+        <g transform="translate(20, 95)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 前置检查覆盖率</text>
+          <text x="220" y="0" font-size="11" fill="#555" class="svg-text">prerequisite_checks 填写率</text>
+        </g>
+        <g transform="translate(20, 130)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 评估异常自检触发率</text>
+          <text x="220" y="0" font-size="11" fill="#555" class="svg-text">主动质疑异常胜率的比例</text>
+        </g>
+        <g transform="translate(20, 165)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 决策可追溯率</text>
+          <text x="220" y="0" font-size="11" fill="#555" class="svg-text">decision_log 完整度</text>
+        </g>
+
+        <line x1="20" y1="200" x2="445" y2="200" stroke="#ccc" stroke-width="1"/>
+        <text x="20" y="225" font-size="11" font-style="italic" fill="#555" class="svg-text">💡 用途：检测 AI 决策模式恶化</text>
+        <text x="20" y="245" font-size="11" font-style="italic" fill="#555" class="svg-text">📈 示例：自检触发率从 70% 降到 30% → 改 strategy skill 的 prompt</text>
+      </g>
+
+      <!-- B3 -->
+      <g transform="translate(20,305)">
+        <rect width="465" height="295" fill="#fff" stroke="#d68910" stroke-width="3"/>
+        <rect width="465" height="40" fill="#d68910"/>
+        <text x="20" y="27" fill="white" font-size="16" font-weight="700" class="svg-text">B3 · 工具调用质量</text>
+        <text x="450" y="27" text-anchor="end" fill="white" font-size="12" class="svg-text">6 个指标</text>
+
+        <g transform="translate(20, 60)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 未知工具调用率</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">瞎编的 skill 名（趋势）</text>
+        </g>
+        <g transform="translate(20, 95)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 参数 schema 失败率</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">参数名/值/类型错</text>
+        </g>
+        <g transform="translate(20, 130)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ Task 上下文携带率</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">dispatch 时硬约束传不传</text>
+        </g>
+        <g transform="translate(20, 165)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 回复率</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">subagent 按时返回率</text>
+        </g>
+        <g transform="translate(20, 200)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 工具准确率（语义）</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">用<tspan text-decoration="underline">异构</tspan> LLM 评判</text>
+        </g>
+        <g transform="translate(20, 235)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 代码模板符合度</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">P-06 根治路径</text>
+        </g>
+
+        <line x1="20" y1="255" x2="445" y2="255" stroke="#ccc" stroke-width="1"/>
+        <text x="20" y="272" font-size="11" font-style="italic" fill="#555" class="svg-text">💡 用途：识别工具误用 / 幻觉趋势</text>
+        <text x="20" y="289" font-size="11" font-style="italic" fill="#555" class="svg-text">📈 示例：未知工具调用率从 0 上升到 5% → 主 agent 在编造 skill 名</text>
+      </g>
+
+      <!-- B4 -->
+      <g transform="translate(515,305)">
+        <rect width="465" height="295" fill="#fff" stroke="#229954" stroke-width="3"/>
+        <rect width="465" height="40" fill="#229954"/>
+        <text x="20" y="27" fill="white" font-size="16" font-weight="700" class="svg-text">B4 · 成本效率</text>
+        <text x="450" y="27" text-anchor="end" fill="white" font-size="12" class="svg-text">3 个指标</text>
+
+        <g transform="translate(20, 60)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 单项目 token 消耗</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">累加所有 LLM token</text>
+        </g>
+        <g transform="translate(20, 95)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 单项目时长</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">S1 到 S8 的 wall-clock</text>
+        </g>
+        <g transform="translate(20, 130)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 重复尝试率</text>
+          <text x="200" y="0" font-size="11" fill="#555" class="svg-text">同 hash 训练配置重复</text>
+        </g>
+
+        <line x1="20" y1="170" x2="445" y2="170" stroke="#ccc" stroke-width="1"/>
+        <text x="20" y="195" font-size="11" font-style="italic" fill="#555" class="svg-text">💡 用途：成本控制 + 发现重复劳动</text>
+        <text x="20" y="215" font-size="11" font-style="italic" fill="#555" class="svg-text">📈 示例：相同 hash 训练配置一周内跑 3 次 → 失败原因没记录，重复踩坑</text>
+        <text x="20" y="235" font-size="11" font-style="italic" fill="#555" class="svg-text">📈 示例：单项目 token 超基线 2 倍 → 触发归因分析</text>
+        <text x="20" y="270" font-size="11" font-style="italic" fill="#aaa" class="svg-text">注：与 P-01~06 正交，但对预算管理有价值</text>
+      </g>
+
+      <!-- B5 -->
+      <g transform="translate(20,620)">
+        <rect width="960" height="265" fill="#fff" stroke="#c0392b" stroke-width="3"/>
+        <rect width="960" height="40" fill="#c0392b"/>
+        <text x="20" y="27" fill="white" font-size="16" font-weight="700" class="svg-text">B5 · 审查体系自身健康度（元监控）</text>
+        <text x="945" y="27" text-anchor="end" fill="white" font-size="12" class="svg-text">4 个指标</text>
+
+        <g transform="translate(20, 60)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ Review skill 调用频次与判定分布</text>
+          <text x="350" y="0" font-size="11" fill="#555" class="svg-text">监控 4 个 review skill 的 pass/block 比例</text>
+        </g>
+        <g transform="translate(20, 95)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ Review 结论与最终结果相关性</text>
+          <text x="350" y="0" font-size="11" fill="#555" class="svg-text">说 pass 的项目下游是否仍频繁出问题</text>
+        </g>
+        <g transform="translate(20, 130)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ Review 漏检率</text>
+          <text x="350" y="0" font-size="11" fill="#555" class="svg-text">P 类问题由用户首先发现的比例</text>
+        </g>
+        <g transform="translate(20, 165)">
+          <text x="0" y="0" font-size="13" font-weight="700" class="svg-text">▸ 监控自身健康度</text>
+          <text x="350" y="0" font-size="11" fill="#555" class="svg-text">日志写入是否还在，dashboard 是否还在更新</text>
+        </g>
+
+        <line x1="20" y1="200" x2="940" y2="200" stroke="#ccc" stroke-width="1"/>
+        <text x="20" y="220" font-size="11" font-style="italic" fill="#555" class="svg-text">💡 用途：防止 review 形同虚设 / 防止监控自己挂了没人知道</text>
+        <text x="20" y="238" font-size="11" font-style="italic" fill="#555" class="svg-text">📈 示例：stage-review 连续 100 次 pass，与项目最终成败相关性 -0.1 → review 形同虚设，需重写</text>
+        <text x="20" y="256" font-size="11" font-style="italic" fill="#c0392b" class="svg-text">⚠️ B5.4 必须通过<tspan font-weight="700">外部信道</tspan>（邮件 / IM）报警，不能依赖被监控的 agent 转发</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="caption">
+    <strong>为什么 B5（元监控）单独占一行：</strong>这一组的存在解决了"监控自己挂了怎么办"的反模式。整套监控体系都依赖 review skill 工作良好，B5 就是给 review 体检的——以及给监控自己体检的。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 图 6：实施阶段（改阶段一/二/三） -->
+<!-- ============================================================ -->
+<section id="fig6">
+  <h2><span class="num">06</span>实施阶段 · 三个阶段的推进顺序</h2>
+  <div class="lead">不是一次做完所有指标，而是按"覆盖问题数 / 实施难度"分三阶段推进</div>
+
+  <div class="reading">
+    每行一个指标，色块出现在它所属的阶段那一列。<strong>红色 = 急诊警报、紫色 = 心电图、蓝色 = 仪表盘</strong>。每行末尾的徽章标注该指标直接覆盖哪个 P 问题。
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 1000 920" xmlns="http://www.w3.org/2000/svg">
+      <!-- Header -->
+      <rect x="0" y="0" width="1000" height="50" fill="#1a1a1a"/>
+      <text x="500" y="32" text-anchor="middle" fill="white" font-size="18" font-weight="700" class="svg-text">三阶段实施顺序</text>
+
+      <!-- Phase headers -->
+      <g>
+        <rect x="270" y="60" width="220" height="60" fill="#c0392b"/>
+        <text x="380" y="88" text-anchor="middle" fill="white" font-size="18" font-weight="700" class="svg-text">阶段一</text>
+        <text x="380" y="108" text-anchor="middle" fill="white" font-size="11" class="svg-text">9 急诊 + 心电图埋点</text>
+
+        <rect x="500" y="60" width="220" height="60" fill="#d68910"/>
+        <text x="610" y="88" text-anchor="middle" fill="white" font-size="18" font-weight="700" class="svg-text">阶段二</text>
+        <text x="610" y="108" text-anchor="middle" fill="white" font-size="11" class="svg-text">心电图统计 + 跨系统</text>
+
+        <rect x="730" y="60" width="220" height="60" fill="#229954"/>
+        <text x="840" y="88" text-anchor="middle" fill="white" font-size="18" font-weight="700" class="svg-text">阶段三</text>
+        <text x="840" y="108" text-anchor="middle" fill="white" font-size="11" class="svg-text">仪表盘 + 模板 linter</text>
+      </g>
+
+      <!-- Phase column dividers -->
+      <line x1="270" y1="60" x2="270" y2="900" stroke="#ccc" stroke-width="1"/>
+      <line x1="500" y1="60" x2="500" y2="900" stroke="#ccc" stroke-width="1"/>
+      <line x1="730" y1="60" x2="730" y2="900" stroke="#ccc" stroke-width="1"/>
+      <line x1="950" y1="60" x2="950" y2="900" stroke="#ccc" stroke-width="1"/>
+
+      <!-- Phase 1 items -->
+      <g transform="translate(0,140)">
+        <text x="10" y="20" font-size="11" font-weight="700" class="svg-text">用户原话捕获率</text>
+        <rect x="280" y="8" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="20" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="8" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="20" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-01/02</text>
+
+        <text x="10" y="50" font-size="11" font-weight="700" class="svg-text">硬/软约束字段分离</text>
+        <rect x="280" y="38" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="50" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="38" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="50" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-01/02</text>
+
+        <text x="10" y="80" font-size="11" font-weight="700" class="svg-text">硬约束用户确认</text>
+        <rect x="280" y="68" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="80" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="68" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="80" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-01/02</text>
+
+        <text x="10" y="110" font-size="11" font-weight="700" class="svg-text">硬约束跨阶段传递</text>
+        <rect x="280" y="98" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="110" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="98" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="110" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-01</text>
+
+        <text x="10" y="140" font-size="11" font-weight="700" class="svg-text">训练框架匹配</text>
+        <rect x="280" y="128" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="140" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="128" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="140" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-01</text>
+
+        <text x="10" y="170" font-size="11" font-weight="700" class="svg-text">stage-review 必调用</text>
+        <rect x="280" y="158" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="170" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="158" width="50" height="18" fill="#7d3c98"/>
+        <text x="925" y="170" text-anchor="middle" fill="white" font-size="9" class="svg-text">兜底</text>
+
+        <text x="10" y="200" font-size="11" font-weight="700" class="svg-text">异常评估必触发 review</text>
+        <rect x="280" y="188" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="200" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="188" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="200" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-05</text>
+
+        <text x="10" y="230" font-size="11" font-weight="700" class="svg-text">方向切换必触发 review</text>
+        <rect x="280" y="218" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="230" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="218" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="230" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-04</text>
+
+        <text x="10" y="260" font-size="11" font-weight="700" class="svg-text">影子调用拦截 🌟</text>
+        <rect x="280" y="248" width="200" height="18" fill="#c0392b"/>
+        <text x="380" y="260" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="248" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="260" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-05+</text>
+
+        <text x="10" y="290" font-size="11" font-weight="700" fill="#7d3c98" class="svg-text">心电图事件埋点 ⭐</text>
+        <rect x="280" y="278" width="200" height="18" fill="#7d3c98"/>
+        <text x="380" y="290" text-anchor="middle" fill="white" font-size="10" class="svg-text">心电图（数据底座）</text>
+        <rect x="900" y="278" width="50" height="18" fill="#7d3c98"/>
+        <text x="925" y="290" text-anchor="middle" fill="white" font-size="9" class="svg-text">底座</text>
+      </g>
+
+      <!-- Phase 2 items -->
+      <g transform="translate(0,460)">
+        <rect x="10" y="-10" width="200" height="20" fill="#fff8e7" stroke="#d68910"/>
+        <text x="20" y="5" font-size="12" font-weight="700" fill="#d68910" class="svg-text">阶段二 ↓</text>
+
+        <text x="10" y="35" font-size="11" font-weight="700" class="svg-text">心电图 4 个衍生指标</text>
+        <rect x="510" y="23" width="200" height="18" fill="#7d3c98"/>
+        <text x="610" y="35" text-anchor="middle" fill="white" font-size="10" class="svg-text">心电图</text>
+
+        <text x="10" y="65" font-size="11" font-weight="700" class="svg-text">Stage 输出 schema 校验</text>
+        <rect x="510" y="53" width="200" height="18" fill="#c0392b"/>
+        <text x="610" y="65" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+
+        <text x="10" y="95" font-size="11" font-weight="700" class="svg-text">Subagent 返回 schema</text>
+        <rect x="510" y="83" width="200" height="18" fill="#c0392b"/>
+        <text x="610" y="95" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+
+        <text x="10" y="125" font-size="11" font-weight="700" class="svg-text">Artifact 元数据完整性</text>
+        <rect x="510" y="113" width="200" height="18" fill="#c0392b"/>
+        <text x="610" y="125" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="113" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="125" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-03</text>
+
+        <text x="10" y="155" font-size="11" font-weight="700" class="svg-text">跨系统 encoding 哈希</text>
+        <rect x="510" y="143" width="200" height="18" fill="#c0392b"/>
+        <text x="610" y="155" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="143" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="155" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-03</text>
+
+        <text x="10" y="185" font-size="11" font-weight="700" class="svg-text">跨系统必触发 adversarial</text>
+        <rect x="510" y="173" width="200" height="18" fill="#c0392b"/>
+        <text x="610" y="185" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="173" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="185" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-03</text>
+
+        <text x="10" y="215" font-size="11" font-weight="700" class="svg-text">Subagent 工具白名单</text>
+        <rect x="510" y="203" width="200" height="18" fill="#2874a6"/>
+        <text x="610" y="215" text-anchor="middle" fill="white" font-size="10" class="svg-text">仪表盘</text>
+
+        <text x="10" y="245" font-size="11" font-weight="700" class="svg-text">Task 上下文携带率</text>
+        <rect x="510" y="233" width="200" height="18" fill="#2874a6"/>
+        <text x="610" y="245" text-anchor="middle" fill="white" font-size="10" class="svg-text">仪表盘</text>
+
+        <text x="10" y="275" font-size="11" font-weight="700" class="svg-text">中途追加约束捕获</text>
+        <rect x="510" y="263" width="200" height="18" fill="#c0392b"/>
+        <text x="610" y="275" text-anchor="middle" fill="white" font-size="10" class="svg-text">急诊</text>
+        <rect x="900" y="263" width="50" height="18" fill="#c0392b"/>
+        <text x="925" y="275" text-anchor="middle" fill="white" font-size="9" class="svg-text">P-01+</text>
+      </g>
+
+      <!-- Phase 3 items -->
+      <g transform="translate(0,770)">
+        <rect x="10" y="-10" width="200" height="20" fill="#eafaf1" stroke="#229954"/>
+        <text x="20" y="5" font-size="12" font-weight="700" fill="#229954" class="svg-text">阶段三 ↓</text>
+
+        <text x="10" y="35" font-size="11" font-weight="700" class="svg-text">B1-B5 全部仪表盘</text>
+        <rect x="740" y="23" width="200" height="18" fill="#2874a6"/>
+        <text x="840" y="35" text-anchor="middle" fill="white" font-size="10" class="svg-text">仪表盘</text>
+
+        <text x="10" y="65" font-size="11" font-weight="700" class="svg-text">代码模板 linter（P-06 根治）</text>
+        <rect x="740" y="53" width="200" height="18" fill="#2874a6"/>
+        <text x="840" y="65" text-anchor="middle" fill="white" font-size="10" class="svg-text">仪表盘</text>
+        <rect x="900" y="-300" width="50" height="0" fill="#c0392b"/>
+      </g>
+
+      <!-- P-06 badge for linter -->
+      <g transform="translate(0,770)">
+        <rect x="950" y="53" width="0" height="0"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="caption">
+    <strong>关键节奏：</strong>阶段一完成所有"零 LLM 评判"的指标 + 心电图埋点（不一定立刻做统计）。这符合"采集端宁多勿少"——<strong>先把数据存下来，分析能力慢慢加</strong>。阶段二填齐跨系统/输出契约，阶段三做长期仪表盘和 P-06 根治。
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ============================================================ -->
+<!-- 图 7：钉在 pipeline 执行点上（彻底重做） -->
+<!-- ============================================================ -->
+<section id="fig7">
+  <h2><span class="num">07</span>指标钉在 pipeline 的哪些执行点上</h2>
+  <div class="lead">每个 stage、每次 Task() dispatch、每次 Skill() call、auto-improve 循环——都是触发点</div>
+
+  <div class="reading">
+    上半部分是 <strong>主 pipeline 8 个 stage</strong>，每行展示该 stage 会"亮起"哪些指标。下半部分是 <strong>横切触发点</strong>，无论在哪个 stage 都会被触发的指标。<br>
+    色块颜色：<span style="background:#c0392b;color:#fff;padding:1px 6px;">🚨 急诊</span> <span style="background:#7d3c98;color:#fff;padding:1px 6px;">💓 心电图</span> <span style="background:#2874a6;color:#fff;padding:1px 6px;">📊 仪表盘</span>
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 1000 1280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow7" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+          <path d="M0,0 L9,5 L0,10 z" fill="#1a1a1a"/>
+        </marker>
+      </defs>
+
+      <!-- ============ Header banner ============ -->
+      <rect x="0" y="0" width="1000" height="60" fill="#1a1a1a"/>
+      <text x="500" y="28" text-anchor="middle" fill="white" font-size="18" font-weight="700" class="svg-text">指标钉在 gaming_ai_meta_skills pipeline 的哪些执行点上</text>
+      <text x="500" y="48" text-anchor="middle" fill="#aaa" font-size="12" font-style="italic" class="svg-text">不是"融入 V3 框架"——V3 框架本身就是指标的设计方法 · 这张图展示指标的落地形态</text>
+
+      <!-- ============ Section title 1 ============ -->
+      <text x="20" y="100" font-size="16" font-weight="700" fill="#1a1a1a" class="svg-text">▸ 主干 · pipeline 8 个 stage 各自的触发点</text>
+      <text x="20" y="120" font-size="11" font-style="italic" fill="#888" class="svg-text">下方仅列出 stage 特有的指标；横切指标见下半部分</text>
+
+      <!-- ============ S1 ============ -->
+      <g transform="translate(0, 140)">
+        <rect x="20" y="0" width="110" height="60" fill="#1a1a1a"/>
+        <text x="75" y="26" text-anchor="middle" fill="white" font-size="20" font-weight="900" class="svg-text">S1</text>
+        <text x="75" y="46" text-anchor="middle" fill="white" font-size="10" class="svg-text">规则确认</text>
+
+        <line x1="135" y1="30" x2="170" y2="30" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="175" y="16" width="155" height="28" rx="4" fill="#c0392b"/>
+        <text x="252" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊1 用户原话捕获</text>
+
+        <rect x="340" y="16" width="155" height="28" rx="4" fill="#c0392b"/>
+        <text x="417" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊2 硬/软字段分离</text>
+
+        <rect x="505" y="16" width="140" height="28" rx="4" fill="#c0392b"/>
+        <text x="575" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊3 用户确认</text>
+
+        <rect x="655" y="16" width="170" height="28" rx="4" fill="#7d3c98"/>
+        <text x="740" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">💓① acknowledged 诞生</text>
+      </g>
+
+      <!-- ============ S2 ============ -->
+      <g transform="translate(0, 215)">
+        <rect x="20" y="0" width="110" height="50" fill="#3a3a3a"/>
+        <text x="75" y="22" text-anchor="middle" fill="white" font-size="18" font-weight="900" class="svg-text">S2</text>
+        <text x="75" y="40" text-anchor="middle" fill="#bbb" font-size="10" class="svg-text">Replay IR</text>
+
+        <line x1="135" y1="25" x2="170" y2="25" stroke="#888" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="175" y="12" width="380" height="26" rx="4" fill="#fafaf7" stroke="#888" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="365" y="29" text-anchor="middle" fill="#666" font-size="11" font-style="italic" class="svg-text">无 stage 特有指标 · 仅触发横切指标</text>
+      </g>
+
+      <!-- ============ S3 ============ -->
+      <g transform="translate(0, 280)">
+        <rect x="20" y="0" width="110" height="50" fill="#3a3a3a"/>
+        <text x="75" y="22" text-anchor="middle" fill="white" font-size="18" font-weight="900" class="svg-text">S3</text>
+        <text x="75" y="40" text-anchor="middle" fill="#bbb" font-size="10" class="svg-text">环境开发</text>
+
+        <line x1="135" y1="25" x2="170" y2="25" stroke="#888" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="175" y="12" width="380" height="26" rx="4" fill="#fafaf7" stroke="#888" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="365" y="29" text-anchor="middle" fill="#666" font-size="11" font-style="italic" class="svg-text">无 stage 特有指标 · 仅触发横切指标</text>
+      </g>
+
+      <!-- ============ S4 ============ -->
+      <g transform="translate(0, 345)">
+        <rect x="20" y="0" width="110" height="50" fill="#3a3a3a"/>
+        <text x="75" y="22" text-anchor="middle" fill="white" font-size="18" font-weight="900" class="svg-text">S4</text>
+        <text x="75" y="40" text-anchor="middle" fill="#bbb" font-size="10" class="svg-text">环境验证</text>
+
+        <line x1="135" y1="25" x2="170" y2="25" stroke="#888" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="175" y="12" width="380" height="26" rx="4" fill="#fafaf7" stroke="#888" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="365" y="29" text-anchor="middle" fill="#666" font-size="11" font-style="italic" class="svg-text">无 stage 特有指标 · 仅触发横切指标</text>
+      </g>
+
+      <!-- ============ S5 ============ -->
+      <g transform="translate(0, 410)">
+        <rect x="20" y="0" width="110" height="60" fill="#1a1a1a"/>
+        <text x="75" y="26" text-anchor="middle" fill="white" font-size="20" font-weight="900" class="svg-text">S5</text>
+        <text x="75" y="46" text-anchor="middle" fill="white" font-size="10" class="svg-text">AI 策略</text>
+
+        <line x1="135" y1="30" x2="170" y2="30" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="175" y="16" width="240" height="28" rx="4" fill="#c0392b"/>
+        <text x="295" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">阶段二: 跨系统场景必触发 adversarial</text>
+
+        <text x="430" y="34" font-size="11" font-style="italic" fill="#888" class="svg-text">↑ 此处涉及跨项目对战，是 P-03 的关键防线</text>
+      </g>
+
+      <!-- ============ S6 ============ -->
+      <g transform="translate(0, 490)">
+        <rect x="20" y="0" width="110" height="60" fill="#1a1a1a"/>
+        <text x="75" y="26" text-anchor="middle" fill="white" font-size="20" font-weight="900" class="svg-text">S6</text>
+        <text x="75" y="46" text-anchor="middle" fill="white" font-size="10" class="svg-text">基线训练</text>
+
+        <line x1="135" y1="30" x2="170" y2="30" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="175" y="16" width="170" height="28" rx="4" fill="#c0392b"/>
+        <text x="260" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊5 训练框架匹配</text>
+
+        <rect x="355" y="16" width="150" height="28" rx="4" fill="#c0392b"/>
+        <text x="430" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊7 异常评估</text>
+
+        <text x="520" y="34" font-size="11" font-style="italic" fill="#888" class="svg-text">↑ 训练启动前最后一道闸 · 训练后立刻评估</text>
+      </g>
+
+      <!-- ============ S7 (含 auto-improve 循环) ============ -->
+      <g transform="translate(0, 570)">
+        <!-- Special highlight: S7 has the auto-improve loop -->
+        <rect x="15" y="-5" width="970" height="120" fill="#fff8e7" stroke="#d68910" stroke-width="2" stroke-dasharray="6,3"/>
+
+        <rect x="20" y="0" width="110" height="60" fill="#1a1a1a"/>
+        <text x="75" y="26" text-anchor="middle" fill="white" font-size="20" font-weight="900" class="svg-text">S7</text>
+        <text x="75" y="46" text-anchor="middle" fill="white" font-size="10" class="svg-text">正式训练</text>
+
+        <line x1="135" y1="30" x2="170" y2="30" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <!-- Pills row 1 -->
+        <rect x="175" y="16" width="150" height="28" rx="4" fill="#c0392b"/>
+        <text x="250" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊7 异常评估</text>
+
+        <rect x="335" y="16" width="170" height="28" rx="4" fill="#c0392b"/>
+        <text x="420" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊8 方向切换 review</text>
+
+        <rect x="515" y="16" width="150" height="28" rx="4" fill="#c0392b"/>
+        <text x="590" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊9 影子调用</text>
+
+        <rect x="675" y="16" width="200" height="28" rx="4" fill="#7d3c98"/>
+        <text x="775" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">💓④ auto-improve 轮内保持率</text>
+
+        <!-- Pills row 2 -->
+        <rect x="175" y="62" width="170" height="28" rx="4" fill="#2874a6"/>
+        <text x="260" y="80" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B2 边际收益（每轮）</text>
+
+        <rect x="355" y="62" width="190" height="28" rx="4" fill="#2874a6"/>
+        <text x="450" y="80" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B2 前置检查覆盖率</text>
+
+        <text x="560" y="80" font-size="11" font-style="italic" fill="#d68910" font-weight="700" class="svg-text">↻ auto-improve 循环高危区 · 此处指标最密集</text>
+      </g>
+
+      <!-- ============ S8 ============ -->
+      <g transform="translate(0, 705)">
+        <rect x="20" y="0" width="110" height="60" fill="#1a1a1a"/>
+        <text x="75" y="26" text-anchor="middle" fill="white" font-size="20" font-weight="900" class="svg-text">S8</text>
+        <text x="75" y="46" text-anchor="middle" fill="white" font-size="10" class="svg-text">交付</text>
+
+        <line x1="135" y1="30" x2="170" y2="30" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="175" y="16" width="240" height="28" rx="4" fill="#7d3c98"/>
+        <text x="295" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">💓② 生命周期完整性 100% check</text>
+
+        <text x="430" y="34" font-size="11" font-style="italic" fill="#888" class="svg-text">↑ 单项目 &lt; 100% 不允许 delivery，最后一关</text>
+      </g>
+
+      <!-- ============ Section title 2 ============ -->
+      <text x="20" y="810" font-size="16" font-weight="700" fill="#1a1a1a" class="svg-text">▸ 横切 · 不属于某个特定 stage，而是钉在工具调用与转换点上</text>
+      <text x="20" y="830" font-size="11" font-style="italic" fill="#888" class="svg-text">这些指标在 pipeline 任何一处都可能触发，构成监控的"密网"</text>
+
+      <!-- Cross-cutting rows -->
+      <!-- Row 1: stage 转换 -->
+      <g transform="translate(0, 850)">
+        <rect x="20" y="0" width="200" height="30" rx="4" fill="#1a1a1a"/>
+        <text x="120" y="20" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">每次 stage 转换</text>
+
+        <line x1="225" y1="15" x2="245" y2="15" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="250" y="1" width="155" height="28" rx="4" fill="#c0392b"/>
+        <text x="327" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊4 跨阶段传递</text>
+
+        <rect x="415" y="1" width="170" height="28" rx="4" fill="#c0392b"/>
+        <text x="500" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">急诊6 stage-review 必调用</text>
+
+        <rect x="595" y="1" width="165" height="28" rx="4" fill="#7d3c98"/>
+        <text x="677" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">💓⑤ propagation_check</text>
+      </g>
+
+      <!-- Row 2: Task() dispatch -->
+      <g transform="translate(0, 895)">
+        <rect x="20" y="0" width="200" height="30" rx="4" fill="#1a1a1a"/>
+        <text x="120" y="20" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">每次 Task() dispatch</text>
+
+        <line x1="225" y1="15" x2="245" y2="15" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="250" y="1" width="180" height="28" rx="4" fill="#7d3c98"/>
+        <text x="340" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">💓③ dispatch_carry_check</text>
+
+        <rect x="440" y="1" width="180" height="28" rx="4" fill="#2874a6"/>
+        <text x="530" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B3 Task 上下文携带率</text>
+
+        <text x="635" y="19" font-size="11" font-style="italic" fill="#888" class="svg-text">↑ Madrona 事件死亡点常发生在此</text>
+      </g>
+
+      <!-- Row 3: subagent 返回 -->
+      <g transform="translate(0, 940)">
+        <rect x="20" y="0" width="200" height="30" rx="4" fill="#1a1a1a"/>
+        <text x="120" y="20" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">每次 subagent 返回</text>
+
+        <line x1="225" y1="15" x2="245" y2="15" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="250" y="1" width="200" height="28" rx="4" fill="#7d3c98"/>
+        <text x="350" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">💓④ output_compliance_check</text>
+
+        <rect x="460" y="1" width="155" height="28" rx="4" fill="#2874a6"/>
+        <text x="537" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B3 回复率</text>
+
+        <rect x="625" y="1" width="195" height="28" rx="4" fill="#2874a6"/>
+        <text x="722" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B3 Subagent 输出 schema</text>
+      </g>
+
+      <!-- Row 4: Skill() call -->
+      <g transform="translate(0, 985)">
+        <rect x="20" y="0" width="200" height="30" rx="4" fill="#1a1a1a"/>
+        <text x="120" y="20" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">每次 Skill() call</text>
+
+        <line x1="225" y1="15" x2="245" y2="15" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="250" y="1" width="180" height="28" rx="4" fill="#2874a6"/>
+        <text x="340" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B1 Skill 调用深度</text>
+
+        <rect x="440" y="1" width="185" height="28" rx="4" fill="#2874a6"/>
+        <text x="532" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B3 未知工具调用率</text>
+      </g>
+
+      <!-- Row 5: review skill 触发后 -->
+      <g transform="translate(0, 1030)">
+        <rect x="20" y="0" width="200" height="30" rx="4" fill="#1a1a1a"/>
+        <text x="120" y="20" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">review skill 触发后</text>
+
+        <line x1="225" y1="15" x2="245" y2="15" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="250" y="1" width="175" height="28" rx="4" fill="#2874a6"/>
+        <text x="337" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B5 调用频次/判定分布</text>
+
+        <rect x="435" y="1" width="140" height="28" rx="4" fill="#2874a6"/>
+        <text x="505" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B5 review 漏检率</text>
+
+        <rect x="585" y="1" width="170" height="28" rx="4" fill="#2874a6"/>
+        <text x="670" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B2 决策可追溯率</text>
+      </g>
+
+      <!-- Row 6: persistent monitor -->
+      <g transform="translate(0, 1075)">
+        <rect x="20" y="0" width="200" height="30" rx="4" fill="#1a1a1a"/>
+        <text x="120" y="20" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">持续后台运行</text>
+
+        <line x1="225" y1="15" x2="245" y2="15" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow7)"/>
+
+        <rect x="250" y="1" width="180" height="28" rx="4" fill="#2874a6"/>
+        <text x="340" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700" class="svg-text">B5.4 监控自身健康度</text>
+
+        <text x="445" y="19" font-size="11" font-style="italic" fill="#c0392b" font-weight="700" class="svg-text">⚠️ 必须用外部信道（邮件/IM）报警 · 不能依赖被监控的 agent</text>
+      </g>
+
+      <!-- ============ Conclusion ============ -->
+      <g transform="translate(20, 1135)">
+        <rect width="960" height="125" fill="#f0eee8" stroke="#1a1a1a" stroke-width="2"/>
+        <text x="480" y="28" text-anchor="middle" font-size="14" font-weight="700" class="svg-text">✓ 这才是监控指标真正"长在哪里"的样子</text>
+        <foreignObject x="20" y="38" width="920" height="80">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;line-height:1.6;font-family:sans-serif;color:#1a1a1a;">
+            指标的归宿不是某份"框架文档"，而是 pipeline 中具体的代码插桩点：<b>stage 转换处的 schema 校验、Task() 工具的 prompt 注入、Skill() 的调用日志、auto-improve 循环的决策追踪、review skill 的触发统计</b>。每个指标都对应一行或几行代码，钉在 pipeline 的某一个执行点上——这就是从"指标设计"到"指标落地"的实际形态。
+          </div>
+        </foreignObject>
+      </g>
+    </svg>
+  </div>
+
+  <div class="caption">
+    <strong>读法：</strong>上半部分（S1-S8）是"在哪个 stage 触发什么"；下半部分（横切）是"在哪类执行点触发什么"。<strong>S7 用黄色虚线框单独高亮</strong>，因为 auto-improve 循环是指标密度最高的区域——也是最容易出问题的区域。
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <div>监控指标方案 V3 · 图解版 · 配套学习材料</div>
+  <div style="margin-top:8px">所有图示按文档"先总后分"逻辑组织 · 建议配合主文档第 4 节决策框架一起学习</div>
+</footer>
+
+</body>
+</html>

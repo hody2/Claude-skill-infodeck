@@ -1,0 +1,93 @@
+<!--
+阶段甘特图模板 (Phased Rollout)
+用途：分阶段实施的时间线，重点是"做不做"而不是"做多久"
+特征：横向三列等宽，对应阶段一/二/三
+⚠️ 不要写"第 1 周""第 2 周"等具体周数，必须用"阶段一/二/三"
+-->
+<svg viewBox="0 0 1000 920" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- ============ 顶部 banner ============ -->
+  <rect x="0" y="0" width="1000" height="50" fill="#1a1a1a"/>
+  <text x="500" y="32" text-anchor="middle" fill="white" font-size="18" font-weight="700">{{时间线主标题}}</text>
+
+  <!-- ============ 三阶段头部 ============ -->
+  <g>
+    <rect x="270" y="60" width="220" height="60" fill="#c0392b"/>
+    <text x="380" y="88" text-anchor="middle" fill="white" font-size="18" font-weight="700">阶段一</text>
+    <text x="380" y="108" text-anchor="middle" fill="white" font-size="11">{{阶段一主题}}</text>
+
+    <rect x="500" y="60" width="220" height="60" fill="#d68910"/>
+    <text x="610" y="88" text-anchor="middle" fill="white" font-size="18" font-weight="700">阶段二</text>
+    <text x="610" y="108" text-anchor="middle" fill="white" font-size="11">{{阶段二主题}}</text>
+
+    <rect x="730" y="60" width="220" height="60" fill="#229954"/>
+    <text x="840" y="88" text-anchor="middle" fill="white" font-size="18" font-weight="700">阶段三</text>
+    <text x="840" y="108" text-anchor="middle" fill="white" font-size="11">{{阶段三主题}}</text>
+  </g>
+
+  <!-- 阶段分隔虚线 -->
+  <line x1="270" y1="60" x2="270" y2="900" stroke="#ccc" stroke-width="1"/>
+  <line x1="500" y1="60" x2="500" y2="900" stroke="#ccc" stroke-width="1"/>
+  <line x1="730" y1="60" x2="730" y2="900" stroke="#ccc" stroke-width="1"/>
+  <line x1="950" y1="60" x2="950" y2="900" stroke="#ccc" stroke-width="1"/>
+
+  <!-- ============ 阶段一的项目（每个项目一行）============ -->
+  <g transform="translate(0,140)">
+    <!-- 项目 1 -->
+    <text x="10" y="20" font-size="11" font-weight="700">{{项目 1 名称}}</text>
+    <rect x="280" y="8" width="200" height="18" fill="#c0392b"/>
+    <text x="380" y="20" text-anchor="middle" fill="white" font-size="10">{{类型，如：急诊}}</text>
+    <rect x="900" y="8" width="50" height="18" fill="#c0392b"/>
+    <text x="925" y="20" text-anchor="middle" fill="white" font-size="9">{{覆盖目标}}</text>
+
+    <!-- 项目 2、3... 每个 y += 30 -->
+    <text x="10" y="50" font-size="11" font-weight="700">{{项目 2}}</text>
+    <rect x="280" y="38" width="200" height="18" fill="#c0392b"/>
+    <text x="380" y="50" text-anchor="middle" fill="white" font-size="10">急诊</text>
+    <rect x="900" y="38" width="50" height="18" fill="#c0392b"/>
+    <text x="925" y="50" text-anchor="middle" fill="white" font-size="9">{{目标}}</text>
+
+    <!-- ...更多项目，颜色按层级语义： -->
+    <!-- 红色 #c0392b = 急诊类 -->
+    <!-- 紫色 #7d3c98 = 心电图 / 数据底座类 -->
+    <!-- 蓝色 #2874a6 = 仪表盘类 -->
+  </g>
+
+  <!-- ============ 阶段二的项目 ============ -->
+  <g transform="translate(0,460)">
+    <rect x="10" y="-10" width="200" height="20" fill="#fff8e7" stroke="#d68910"/>
+    <text x="20" y="5" font-size="12" font-weight="700" fill="#d68910">阶段二 ↓</text>
+
+    <!-- 项目色块 x 从 510 开始（在第二阶段列里），宽度 200 -->
+    <text x="10" y="35" font-size="11" font-weight="700">{{阶段二项目 1}}</text>
+    <rect x="510" y="23" width="200" height="18" fill="#7d3c98"/>
+    <text x="610" y="35" text-anchor="middle" fill="white" font-size="10">{{类型}}</text>
+  </g>
+
+  <!-- ============ 阶段三的项目 ============ -->
+  <g transform="translate(0,770)">
+    <rect x="10" y="-10" width="200" height="20" fill="#eafaf1" stroke="#229954"/>
+    <text x="20" y="5" font-size="12" font-weight="700" fill="#229954">阶段三 ↓</text>
+
+    <!-- 项目色块 x 从 740 开始 -->
+    <text x="10" y="35" font-size="11" font-weight="700">{{阶段三项目 1}}</text>
+    <rect x="740" y="23" width="200" height="18" fill="#2874a6"/>
+    <text x="840" y="35" text-anchor="middle" fill="white" font-size="10">{{类型}}</text>
+  </g>
+</svg>
+
+<!--
+布局说明：
+- 三阶段列的 x 范围：
+  阶段一: 280-480
+  阶段二: 510-710
+  阶段三: 740-940
+- 项目名称在最左侧（x=10），全宽对齐
+- 项目色块出现在所属阶段的列里
+- 末尾徽章（覆盖的目标）在 x=900-950
+
+⚠️ 强制规则：
+- 不允许用具体周数（"第 1 周""2 周内"等）
+- 必须用"阶段一""阶段二""阶段三"
+- 色块颜色严格按层级语义，不按时间
+-->

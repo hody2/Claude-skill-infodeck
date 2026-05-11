@@ -1,0 +1,88 @@
+<!--
+故事卡网格模板 (Story Cards Grid)
+用途：N 个并列概念（5-12 个），每个需要"故事 + 应对"两段式
+特征：N×3 网格，编号圆 + 标题 + 故事 + 监控 + 底部徽章
+-->
+<svg viewBox="0 0 1000 1100" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .card { fill: #fff; stroke: #1a1a1a; stroke-width: 2; }
+    .card-title { font-size: 14px; font-weight: 700; fill: #1a1a1a; }
+    .card-section { font-size: 12px; fill: #555; }
+    .card-monitor { font-size: 12px; fill: #1a1a1a; }
+    .badge { stroke: #1a1a1a; stroke-width: 1.5; }
+    .badge-text { font-size: 10px; font-weight: 700; fill: white; }
+    .num-circle { fill: #c0392b; stroke: #1a1a1a; stroke-width: 2; }
+    .num-text { fill: white; font-size: 14px; font-weight: 900; }
+  </style>
+
+  <!-- ============ 卡片模板（重复 N 次，调整 translate）============ -->
+  <!-- 第一行 -->
+  <g transform="translate(20,20)">
+    <rect class="card" width="305" height="245"/>
+    <circle class="num-circle" cx="30" cy="30" r="18"/>
+    <text class="num-text" x="30" y="35" text-anchor="middle">1</text>
+    <text class="card-title" x="60" y="35">{{卡片 1 标题}}</text>
+    <text class="card-section" x="15" y="75">📝 故事</text>
+    <foreignObject x="15" y="80" width="280" height="60">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#555;line-height:1.4;font-family:sans-serif;">
+        {{故事内容：如果不监控会发生什么}}
+      </div>
+    </foreignObject>
+    <text class="card-monitor" x="15" y="165">🔍 {{应对类型，如：监控}}</text>
+    <foreignObject x="15" y="170" width="280" height="60">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;line-height:1.4;font-family:sans-serif;">
+        {{应对方式 / 监控规则}}
+      </div>
+    </foreignObject>
+    <rect class="badge" x="180" y="218" width="115" height="20" fill="#c0392b"/>
+    <text class="badge-text" x="237" y="232" text-anchor="middle">{{徽章文字，如：覆盖 X / Y}}</text>
+  </g>
+
+  <g transform="translate(345,20)">
+    <rect class="card" width="305" height="245"/>
+    <circle class="num-circle" cx="30" cy="30" r="18"/>
+    <text class="num-text" x="30" y="35" text-anchor="middle">2</text>
+    <text class="card-title" x="60" y="35">{{卡片 2 标题}}</text>
+    <!-- ...同样的结构... -->
+  </g>
+
+  <g transform="translate(670,20)">
+    <rect class="card" width="305" height="245"/>
+    <!-- ... -->
+  </g>
+
+  <!-- 第二行：translate y=285 -->
+  <!-- 第三行：translate y=550 -->
+
+  <!-- ============ 底部汇总区（黄色框）============ -->
+  <g transform="translate(20,820)">
+    <rect width="955" height="240" fill="#fff8e7" stroke="#d68910" stroke-width="2"/>
+    <text x="20" y="30" font-size="16" font-weight="700" fill="#d68910">⚡ {{汇总区标题：覆盖映射 / 反向验证}}</text>
+
+    <text x="20" y="65" font-size="13" font-weight="700">{{被覆盖问题 1}}</text>
+    <text x="200" y="65" font-size="12">→ {{覆盖该问题的卡片编号}}</text>
+
+    <text x="20" y="95" font-size="13" font-weight="700">{{被覆盖问题 2}}</text>
+    <text x="200" y="95" font-size="12">→ {{...}}</text>
+
+    <!-- ...更多行... -->
+  </g>
+
+</svg>
+
+<!--
+布局参考：
+- 卡片宽 305，高 245
+- 横向：3 列，x = 20, 345, 670（间距 20）
+- 纵向：每行 translate(y, ...) 增加 265
+- 整页 viewBox 高度 = 行数 × 265 + 280（汇总区）
+
+徽章位置规则：
+- 放在卡片右下角（x = 180, y = 218）
+- 不放右上角（会挡标题）
+- 文字格式："覆盖 X" 或 "覆盖 X / Y"
+
+编号圆颜色规则：
+- 全部用语义色（红=紧急类，紫=数据底座类）
+- 不要每张卡片用不同颜色，保持系列感
+-->

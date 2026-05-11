@@ -1,0 +1,123 @@
+<!--
+执行点锚定模板 (Pipeline Anchor)
+用途：把抽象方案"钉"到具体系统的执行点上
+特征：主干（主要 stage）+ 横切（universal trigger points）两段式
+重要：这种图回答的是"在哪里触发什么"，让抽象方案变成可落地的代码点
+-->
+<svg viewBox="0 0 1000 1280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow-pa" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <!-- ============ 顶部 banner ============ -->
+  <rect x="0" y="0" width="1000" height="60" fill="#1a1a1a"/>
+  <text x="500" y="28" text-anchor="middle" fill="white" font-size="18" font-weight="700">{{主标题：指标钉在哪些执行点上}}</text>
+  <text x="500" y="48" text-anchor="middle" fill="#aaa" font-size="12" font-style="italic">{{副标题：强调这是落地形态而非框架}}</text>
+
+  <!-- ============ Section 1: 主干 ============ -->
+  <text x="20" y="100" font-size="16" font-weight="700">▸ 主干 · {{主流程描述}}</text>
+  <text x="20" y="120" font-size="11" font-style="italic" fill="#888">下方仅列出 stage 特有的指标；横切指标见下半部分</text>
+
+  <!-- Stage 1（有特有指标，正常显示）-->
+  <g transform="translate(0, 140)">
+    <rect x="20" y="0" width="110" height="60" fill="#1a1a1a"/>
+    <text x="75" y="26" text-anchor="middle" fill="white" font-size="20" font-weight="900">S1</text>
+    <text x="75" y="46" text-anchor="middle" fill="white" font-size="10">{{stage 名}}</text>
+
+    <line x1="135" y1="30" x2="170" y2="30" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow-pa)"/>
+
+    <!-- Pills（按语义色）-->
+    <rect x="175" y="16" width="155" height="28" rx="4" fill="#c0392b"/>
+    <text x="252" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{急诊指标 1}}</text>
+
+    <rect x="340" y="16" width="155" height="28" rx="4" fill="#c0392b"/>
+    <text x="417" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{急诊指标 2}}</text>
+
+    <rect x="505" y="16" width="170" height="28" rx="4" fill="#7d3c98"/>
+    <text x="590" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{心电图指标}}</text>
+  </g>
+
+  <!-- Stage 2-4（无特有指标，灰色虚线框标注）-->
+  <g transform="translate(0, 215)">
+    <rect x="20" y="0" width="110" height="50" fill="#3a3a3a"/>
+    <text x="75" y="22" text-anchor="middle" fill="white" font-size="18" font-weight="900">S2</text>
+    <text x="75" y="40" text-anchor="middle" fill="#bbb" font-size="10">{{stage 名}}</text>
+
+    <line x1="135" y1="25" x2="170" y2="25" stroke="#888" stroke-width="2" marker-end="url(#arrow-pa)"/>
+
+    <rect x="175" y="12" width="380" height="26" rx="4" fill="#fafaf7" stroke="#888" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="365" y="29" text-anchor="middle" fill="#666" font-size="11" font-style="italic">无 stage 特有指标 · 仅触发横切指标</text>
+  </g>
+
+  <!-- 继续 Stage 3、4、5... 按需 -->
+
+  <!-- 特殊 Stage（如 auto-improve 高危区，用黄色虚线大框高亮）-->
+  <g transform="translate(0, 570)">
+    <rect x="15" y="-5" width="970" height="120" fill="#fff8e7" stroke="#d68910" stroke-width="2" stroke-dasharray="6,3"/>
+
+    <rect x="20" y="0" width="110" height="60" fill="#1a1a1a"/>
+    <text x="75" y="26" text-anchor="middle" fill="white" font-size="20" font-weight="900">S{{N}}</text>
+    <text x="75" y="46" text-anchor="middle" fill="white" font-size="10">{{特殊 stage 名}}</text>
+
+    <line x1="135" y1="30" x2="170" y2="30" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow-pa)"/>
+
+    <!-- 第一行 pills -->
+    <rect x="175" y="16" width="150" height="28" rx="4" fill="#c0392b"/>
+    <text x="250" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{急诊 1}}</text>
+
+    <rect x="335" y="16" width="170" height="28" rx="4" fill="#c0392b"/>
+    <text x="420" y="34" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{急诊 2}}</text>
+
+    <!-- 第二行 pills（如果一行放不下） -->
+    <rect x="175" y="62" width="170" height="28" rx="4" fill="#2874a6"/>
+    <text x="260" y="80" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{仪表盘 1}}</text>
+
+    <text x="560" y="80" font-size="11" font-style="italic" fill="#d68910" font-weight="700">↻ {{高危区说明}}</text>
+  </g>
+
+  <!-- ============ Section 2: 横切 ============ -->
+  <text x="20" y="810" font-size="16" font-weight="700">▸ 横切 · 不属于某个特定 stage，而是钉在工具调用与转换点上</text>
+  <text x="20" y="830" font-size="11" font-style="italic" fill="#888">这些指标在任何一处都可能触发，构成监控的"密网"</text>
+
+  <!-- 横切 Row 1: 每次 stage 转换 -->
+  <g transform="translate(0, 850)">
+    <rect x="20" y="0" width="200" height="30" rx="4" fill="#1a1a1a"/>
+    <text x="120" y="20" text-anchor="middle" fill="white" font-size="11" font-weight="700">每次 {{触发点 1}}</text>
+
+    <line x1="225" y1="15" x2="245" y2="15" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow-pa)"/>
+
+    <rect x="250" y="1" width="155" height="28" rx="4" fill="#c0392b"/>
+    <text x="327" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{触发的指标 1}}</text>
+
+    <rect x="415" y="1" width="170" height="28" rx="4" fill="#c0392b"/>
+    <text x="500" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{触发的指标 2}}</text>
+
+    <rect x="595" y="1" width="165" height="28" rx="4" fill="#7d3c98"/>
+    <text x="677" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700">{{触发的指标 3}}</text>
+  </g>
+
+  <!-- Row 2、3、4... 每行 y += 45 -->
+
+  <!-- ============ 底部结论 ============ -->
+  <g transform="translate(20, 1135)">
+    <rect width="960" height="125" fill="#f0eee8" stroke="#1a1a1a" stroke-width="2"/>
+    <text x="480" y="28" text-anchor="middle" font-size="14" font-weight="700">✓ {{结论标题}}</text>
+    <foreignObject x="20" y="38" width="920" height="80">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;line-height:1.6;font-family:sans-serif;color:#1a1a1a;">
+        {{结论段落，强调这是从抽象到具体的转化}}
+      </div>
+    </foreignObject>
+  </g>
+</svg>
+
+<!--
+关键设计点：
+1. 上半部分（主干）和下半部分（横切）必须有明确的视觉分隔
+2. 主干每个 stage 一行，水平展开 stage 特有的 pill
+3. 没有特有指标的 stage，用灰色虚线框标注，保持视觉节奏
+4. 特殊高危 stage（如 auto-improve）用黄色虚线大框高亮
+5. 横切部分用黑色 trigger 标签作为锚点（"每次 X dispatch""每次 Y call"）
+6. 底部结论强调"指标的归宿不是文档而是代码插桩点"
+-->

@@ -1,0 +1,100 @@
+<!--
+多组分类仪表盘模板 (Multi-Group Dashboard)
+用途：N 个并列分组（4-6 组），每组下面有若干指标/条目
+特征：每组一个大卡片，每组结构必须完全一致
+⚠️ 严重警告：SVG <text> 里绝对不能用 <u> <b> <i> 等 HTML 标签！会破坏后续组的渲染！
+-->
+<svg viewBox="0 0 1000 920" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- ============ 组 1（左上）============ -->
+  <g transform="translate(20,20)">
+    <rect width="465" height="265" fill="#fff" stroke="#2874a6" stroke-width="3"/>
+    <rect width="465" height="40" fill="#2874a6"/>
+    <text x="20" y="27" fill="white" font-size="16" font-weight="700">{{组 1 名称}}</text>
+    <text x="450" y="27" text-anchor="end" fill="white" font-size="12">{{N 个指标}}</text>
+
+    <!-- 指标行 -->
+    <g transform="translate(20, 60)">
+      <text x="0" y="0" font-size="13" font-weight="700">▸ {{指标 1}}</text>
+      <text x="170" y="0" font-size="11" fill="#555">{{说明}}</text>
+    </g>
+    <g transform="translate(20, 95)">
+      <text x="0" y="0" font-size="13" font-weight="700">▸ {{指标 2}}</text>
+      <text x="170" y="0" font-size="11" fill="#555">{{说明}}</text>
+    </g>
+    <g transform="translate(20, 130)">
+      <text x="0" y="0" font-size="13" font-weight="700">▸ {{指标 3}}</text>
+      <text x="170" y="0" font-size="11" fill="#555">{{说明}}</text>
+    </g>
+    <g transform="translate(20, 165)">
+      <text x="0" y="0" font-size="13" font-weight="700">▸ {{指标 4}}</text>
+      <text x="170" y="0" font-size="11" fill="#555">{{说明}}</text>
+    </g>
+
+    <!-- 分隔线 + 用途 + 示例（每组必有）-->
+    <line x1="20" y1="200" x2="445" y2="200" stroke="#ccc" stroke-width="1"/>
+    <text x="20" y="225" font-size="11" font-style="italic" fill="#555">💡 用途：{{这一组解决什么长期问题}}</text>
+    <text x="20" y="245" font-size="11" font-style="italic" fill="#555">📈 示例：{{典型触发场景}}</text>
+  </g>
+
+  <!-- ============ 组 2（右上）============ -->
+  <g transform="translate(515,20)">
+    <rect width="465" height="265" fill="#fff" stroke="#7d3c98" stroke-width="3"/>
+    <rect width="465" height="40" fill="#7d3c98"/>
+    <text x="20" y="27" fill="white" font-size="16" font-weight="700">{{组 2 名称}}</text>
+    <text x="450" y="27" text-anchor="end" fill="white" font-size="12">{{N 个指标}}</text>
+    <!-- 复制组 1 的指标 + 💡 + 📈 结构 -->
+  </g>
+
+  <!-- ============ 组 3（左中）============ -->
+  <g transform="translate(20,305)">
+    <rect width="465" height="295" fill="#fff" stroke="#d68910" stroke-width="3"/>
+    <rect width="465" height="40" fill="#d68910"/>
+    <text x="20" y="27" fill="white" font-size="16" font-weight="700">{{组 3 名称}}</text>
+    <!-- ... -->
+  </g>
+
+  <!-- ============ 组 4（右中）============ -->
+  <g transform="translate(515,305)">
+    <rect width="465" height="295" fill="#fff" stroke="#229954" stroke-width="3"/>
+    <!-- ... -->
+  </g>
+
+  <!-- ============ 组 5（全宽，强调重要性）============ -->
+  <g transform="translate(20,620)">
+    <rect width="960" height="265" fill="#fff" stroke="#c0392b" stroke-width="3"/>
+    <rect width="960" height="40" fill="#c0392b"/>
+    <text x="20" y="27" fill="white" font-size="16" font-weight="700">{{组 5 名称（最重要的一组，独占一行）}}</text>
+    <text x="945" y="27" text-anchor="end" fill="white" font-size="12">{{N 个指标}}</text>
+
+    <!-- 指标行（横向更宽，x 间距更大）-->
+    <g transform="translate(20, 60)">
+      <text x="0" y="0" font-size="13" font-weight="700">▸ {{指标 1}}</text>
+      <text x="350" y="0" font-size="11" fill="#555">{{说明}}</text>
+    </g>
+    <!-- ... -->
+
+    <line x1="20" y1="200" x2="940" y2="200" stroke="#ccc" stroke-width="1"/>
+    <text x="20" y="220" font-size="11" font-style="italic" fill="#555">💡 用途：{{...}}</text>
+    <text x="20" y="238" font-size="11" font-style="italic" fill="#555">📈 示例：{{...}}</text>
+    <!-- 如果是元监控类，还可以加 ⚠️ 警告 -->
+    <text x="20" y="256" font-size="11" font-style="italic" fill="#c0392b">⚠️ {{特别提醒}}</text>
+  </g>
+</svg>
+
+<!--
+组色配置（按语义）：
+- 组 1 流程类 → 蓝色 #2874a6
+- 组 2 决策类 → 紫色 #7d3c98
+- 组 3 工具调用类 → 黄色 #d68910
+- 组 4 成本类 → 绿色 #229954
+- 组 5 元监控类 → 红色 #c0392b（独占一行）
+
+⚠️ 关键陷阱回顾：
+如果你想给某段文字加下划线（如"用<u>异构</u> LLM 评判"），
+绝对不要用 <u>！必须用：
+<tspan text-decoration="underline">异构</tspan>
+
+否则从那个标签开始，后面所有的组都不会渲染！
+（实战中曾出现 B1-B5 共 5 组只渲染了 B1-B3 的 bug）
+-->

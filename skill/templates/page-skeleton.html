@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>{{标题}} · 图解版</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --ink: #1a1a1a;
+    --ink-soft: #555;
+    --line: #2a2a2a;
+    --paper: #ffffff;
+    --accent-red: #c0392b;
+    --accent-amber: #d68910;
+    --accent-green: #229954;
+    --accent-blue: #2874a6;
+    --accent-purple: #7d3c98;
+    --accent-gray: #888;
+    --shadow: 4px 4px 0 #1a1a1a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.6;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+  header {
+    text-align: center;
+    padding: 32px 0 48px;
+    border-bottom: 3px solid var(--line);
+    margin-bottom: 48px;
+  }
+  header h1 { font-size: 36px; margin: 0 0 12px; letter-spacing: 2px; }
+  header .subtitle { font-size: 16px; color: var(--ink-soft); }
+  .nav {
+    position: sticky; top: 0;
+    background: var(--bg); padding: 16px 0;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 40px; z-index: 100;
+  }
+  .nav ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  }
+  .nav a {
+    display: inline-block; padding: 6px 12px;
+    border: 2px solid var(--line); background: var(--paper);
+    color: var(--ink); text-decoration: none; font-size: 13px;
+    transition: all 0.15s;
+  }
+  .nav a:hover { background: var(--ink); color: var(--paper); }
+  section { margin: 80px 0; scroll-margin-top: 80px; }
+  section h2 {
+    font-size: 28px; margin: 0 0 8px; padding-bottom: 12px;
+    border-bottom: 3px solid var(--line);
+    display: flex; align-items: baseline; gap: 16px;
+  }
+  section h2 .num {
+    font-size: 56px; font-weight: 900;
+    -webkit-text-stroke: 2px var(--line);
+    color: transparent;
+  }
+  section .lead {
+    font-size: 15px; color: var(--ink-soft);
+    margin: 8px 0 32px; padding-left: 80px;
+  }
+  .figure {
+    background: var(--paper); border: 3px solid var(--line);
+    box-shadow: var(--shadow); padding: 32px; margin: 24px 0;
+  }
+  .figure svg { display: block; width: 100%; height: auto; }
+  .caption {
+    font-size: 14px; color: var(--ink-soft);
+    margin-top: 12px; padding: 12px 16px;
+    background: #f0eee8; border-left: 4px solid var(--line);
+  }
+  .caption strong { color: var(--ink); }
+  .reading {
+    background: #fff8e7; border: 2px solid var(--accent-amber);
+    padding: 16px 20px; margin: 16px 0; font-size: 14px;
+  }
+  .reading::before {
+    content: "📖 怎么看这张图";
+    display: block; font-weight: 700; margin-bottom: 8px;
+    color: var(--accent-amber);
+  }
+  footer {
+    margin-top: 96px; padding: 32px 0;
+    border-top: 3px solid var(--line);
+    text-align: center; color: var(--ink-soft); font-size: 13px;
+  }
+  .svg-text { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .svg-mono { font-family: "SF Mono", Monaco, Consolas, monospace; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>{{主标题}}</h1>
+  <div class="subtitle">{{副标题}}</div>
+</header>
+
+<div class="container">
+
+<nav class="nav">
+  <ul>
+    <li><a href="#fig1">① {{图 1 简名}}</a></li>
+    <li><a href="#fig2">② {{图 2 简名}}</a></li>
+    <li><a href="#fig3">③ {{图 3 简名}}</a></li>
+    <!-- ... -->
+  </ul>
+</nav>
+
+<!-- ============================================================ -->
+<!-- 图 1：{{图 1 标题}} -->
+<!-- ============================================================ -->
+<section id="fig1">
+  <h2><span class="num">01</span>{{图 1 标题}}</h2>
+  <div class="lead">{{图 1 副标题 / 这张图回答什么问题}}</div>
+
+  <div class="reading">
+    {{"怎么看这张图"的引导文字}}
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow1" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+          <path d="M0,0 L10,6 L0,12 z" fill="#1a1a1a"/>
+        </marker>
+      </defs>
+
+      <!-- {{在这里插入 SVG 内容}} -->
+
+    </svg>
+  </div>
+
+  <div class="caption">
+    <strong>{{关键洞察 / 记忆要点}}：</strong>{{caption 内容}}
+  </div>
+</section>
+
+<!-- 复制上面的 section 结构作为图 2、图 3... -->
+
+</div>
+
+<footer>
+  <div>{{文档名}} · 图解版</div>
+  <div style="margin-top:8px">{{副标题}}</div>
+</footer>
+
+</body>
+</html>
